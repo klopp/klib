@@ -9,7 +9,7 @@
 #define CONFIG_H_
 
 #ifndef __WINDOWS__
-# if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
+# if defined(_MSC_VER) || defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
 #  define __WINDOWS__
 # endif
 #endif
