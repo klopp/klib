@@ -9,6 +9,7 @@
 #define ARRAY_H_
 
 #include <stdlib.h>
+#include <string.h>
 
 #define ARR_K_EXPAND    1.5
 
