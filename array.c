@@ -47,6 +47,7 @@ void * aset( Array array, size_t idx, void * data )
         size_t newsize = array->size * ARR_K_EXPAND;
         void * ptr = realloc( array->data, newsize );
         if( !ptr ) return NULL;
+        free( array->data );
         array->data = ptr;
         array->size = newsize;
     }
