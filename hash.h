@@ -15,15 +15,15 @@ extern "C"
 {
 #endif
 
-unsigned hash_faq6( unsigned startval, const char * buf, size_t size );
-unsigned hash_rot13( unsigned startval, const char * buf, size_t size );
-unsigned hash_ly( unsigned startval, const char * buf, size_t size );
-unsigned hash_rs( unsigned startval, const char * buf, size_t size );
+unsigned hash_faq6( unsigned startval, const void * buf, size_t size );
+unsigned hash_rot13( unsigned startval, const void * buf, size_t size );
+unsigned hash_ly( unsigned startval, const void * buf, size_t size );
+unsigned hash_rs( unsigned startval, const void * buf, size_t size );
 
-#define shash_faq6(s)   hash_faq6( 0, (s), strlen((s)) )
-#define shash_rot13(s)  hash_rot13( 0, (s), strlen((s)) )
-#define shash_ly(s)     hash_ly( 0, (s), strlen((s)) )
-#define shash_rs(s)     hash_rs( 0, (s), strlen((s)) )
+unsigned shash_faq6( unsigned startval, const char * buf );
+unsigned shash_rot13( unsigned startval, const char * buf );
+unsigned shash_ly( unsigned startval, const char * buf );
+unsigned shash_rs( unsigned startval, const char * buf );
 
 #ifdef __cplusplus
 }

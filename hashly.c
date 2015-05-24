@@ -7,12 +7,26 @@
 
 #include "hash.h"
 
-unsigned hash_ly( unsigned startval, const char * buf, size_t size )
+#define A   1664525
+#define B   1013904223
+
+unsigned hash_ly( unsigned startval, const void * buf, size_t size )
 {
     unsigned hash;
 
-    for( hash = startval; size; size--, buf++ )
-        hash = (hash * 1664525) + (unsigned char)(*buf) + 1013904223;
+    for( hash = startval; size; size--, (unsigned char *)buf++ )
+        hash = (hash * A) + *((unsigned char *)buf) + B;
+
+    return hash;
+
+}
+
+unsigned shash_ly( unsigned startval, const char * buf )
+{
+    unsigned hash;
+
+    for( hash = startval; *buf; buf++ )
+        hash = (hash * A) + *((unsigned char *)buf) + B;
 
     return hash;
 

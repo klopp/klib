@@ -7,13 +7,25 @@
 
 #include "hash.h"
 
-unsigned hash_rot13( unsigned startval, const char * buf, size_t size )
+unsigned hash_rot13( unsigned startval, const void * buf, size_t size )
 {
     unsigned hash;
 
-    for( hash = startval; size; size--, buf++ )
+    for( hash = startval; size; size--, (unsigned char  *)buf++ )
     {
-        hash += (unsigned char)(*buf);
+        hash += *((unsigned char *)buf);
+        hash -= (hash << 13) | (hash >> 19);
+    }
+    return hash;
+}
+
+unsigned shash_rot13( unsigned startval, const char * buf )
+{
+    unsigned hash;
+
+    for( hash = startval; *buf; buf++ )
+    {
+        hash += *((unsigned char *)buf);
         hash -= (hash << 13) | (hash >> 19);
     }
     return hash;

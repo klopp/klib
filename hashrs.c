@@ -7,18 +7,33 @@
 
 #include "hash.h"
 
-unsigned hash_rs( unsigned startval, const char * buf, size_t size )
+#define A   63689
+#define B   378551
+
+static unsigned a = 0;
+
+unsigned hash_rs( unsigned startval, const void * buf, size_t size )
 {
-    //static const unsigned int b = 378551;
-    static unsigned a = 0;
     unsigned hash;
 
-    if( !startval ) a = 63689;
-
-    for( hash = startval; size; size--, buf++ )
+    if( !startval ) a = A;
+    for( hash = startval; size; size--, (unsigned char *)buf++ )
     {
-        hash = hash * a + (unsigned char)(*buf);
-        a *= 378551;
+        hash = hash * a + *((unsigned char *)buf);
+        a *= B;
+    }
+    return hash;
+}
+
+unsigned shash_rs( unsigned startval, const char * buf )
+{
+    unsigned hash;
+
+    if( !startval ) a = A;
+    for( hash = startval; *buf; buf++ )
+    {
+        hash = hash * a + *((unsigned char *)buf);
+        a *= B;
     }
     return hash;
 }
