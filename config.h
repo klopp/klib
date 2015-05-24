@@ -18,7 +18,7 @@
 # if defined(MAX_PATH)
 #  define PATH_MAX MAX_PATH
 # else
-#  define PATH_MAX 256
+#  define PATH_MAX 4096
 # endif
 #endif
 
@@ -37,6 +37,8 @@
 #  define __func__ __FUNCTION__
 # elif defined(__FUNC__)
 #  define __func__ __FUNC__
+# else
+#  define __func__ "<?>"
 # endif
 #endif
 
