@@ -46,10 +46,21 @@ typedef struct _Log
     char format_warn;
     char format_info;
     char format_dbg;
+    char format_datetime;
 }*Log;
 
 Log log_create( const char * filename, LogFlags flags );
-int plog( Log log, LogFlags level, const char * fmt, ... );
 void log_destroy( Log log );
+
+int plog( Log, LogFlags level, const char * fmt, ... );
+int flog( Log, const char * fmt, ... );
+int elog( Log, const char * fmt, ... );
+int wlog( Log, const char * fmt, ... );
+int ilog( Log, const char * fmt, ... );
+int dlog( Log, const char * fmt, ... );
+
+const char * log_datetime( char separator );
+const char * log_date( void );
+const char * log_time( void );
 
 #endif /* LOG_H_ */

@@ -37,19 +37,6 @@ static const char * _log_format( Log log, LogFlags level )
     return buf;
 }
 
-int log_flags( Log log, LogFlags flags )
-{
-    if( !log ) return 0;
-
-    log->flags = flags;
-    log->format_fatal = '!';
-    log->format_err = '*';
-    log->format_warn = '?';
-    log->format_info = '-';
-    log->format_dbg = '#';
-    return 1;
-}
-
 void log_destroy( Log log )
 {
     free( log );
@@ -59,52 +46,90 @@ Log log_create( const char * filename, LogFlags flags )
 {
     Log log = calloc( sizeof(struct _Log), 1 );
     if( !log ) return NULL;
+
     if( filename ) strncpy( log->filename, filename,
             sizeof(log->filename) - 1 );
-    log_flags( log, flags );
+
+    log->flags = flags;
+    log->format_fatal = '!';
+    log->format_err = '*';
+    log->format_warn = '?';
+    log->format_info = '-';
+    log->format_dbg = '#';
+    log->format_datetime = 0;
 
     return log;
 }
 
-static void _log( FILE * file, const char * buf, const char * fmt, ... )
+static void _log( FILE * file, const char * buf, const char * fmt, va_list ap )
 {
-    va_list ap;
     fprintf( file, "%s", buf );
-    va_start( ap, fmt );
     vfprintf( file, fmt, ap );
-    va_end( ap );
     fprintf( file, "\n" );
 }
 
-const char * log_date( void )
+static void _log_datetime( char ** dateptr, char ** timeptr )
 {
-    static char tbuf[32];
+    static char tbuf[16];
+    static char dbuf[16];
     struct tm *lt;
     time_t ttime;
 
     ttime = time( &ttime );
     lt = localtime( &ttime );
-    sprintf( tbuf, "%u.%02u.%02u", lt->tm_year + 1900, lt->tm_mon + 1,
-            lt->tm_mday );
+    if( dateptr )
+    {
+        sprintf( dbuf, "%u.%02u.%02u", lt->tm_year + 1900, lt->tm_mon + 1,
+                lt->tm_mday );
+        *dateptr = dbuf;
+    }
+    if( timeptr )
+    {
+        sprintf( tbuf, "%02u:%02u:%02u", lt->tm_hour, lt->tm_min, lt->tm_sec );
+        *timeptr = tbuf;
+    }
+}
+
+static const char * _log_datetime_separator( char separator )
+{
+    static char dtsep[4] =
+    { 0 };
+    if( separator == ' ' ) separator = 0;
+    dtsep[0] = separator ? separator : ' ';
+    dtsep[1] = separator ? ' ' : 0;
+    return dtsep;
+}
+
+const char * log_datetime( char separator )
+{
+    static char datetime[32];
+    char * timeptr;
+    char * dateptr;
+
+    _log_datetime( &dateptr, &timeptr );
+    strcpy( datetime, dateptr );
+    strcat( datetime, _log_datetime_separator( separator ) );
+    strcat( datetime, timeptr );
+    return datetime;
+}
+
+const char * log_date( void )
+{
+    char * tbuf;
+    _log_datetime( NULL, &tbuf );
     return tbuf;
 }
 
 const char * log_time( void )
 {
-    static char tbuf[32];
-    struct tm *lt;
-    time_t ttime;
-
-    ttime = time( &ttime );
-    lt = localtime( &ttime );
-    sprintf( tbuf, "%02u:%02u:%02u", lt->tm_hour, lt->tm_min, lt->tm_sec );
-    return tbuf;
+    char * dbuf;
+    _log_datetime( &dbuf, NULL );
+    return dbuf;
 }
 
-int plog( Log log, LogFlags level, const char * fmt, ... )
+static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
 {
     char buf[128];
-    char tbuf[32];
 
     if( (level & log->flags) != level ) return 0;
 
@@ -112,8 +137,7 @@ int plog( Log log, LogFlags level, const char * fmt, ... )
 
     if( log->flags & LOG_LOGPID )
     {
-        sprintf( tbuf, "%-5u ", getpid() );
-        strcat( buf, tbuf );
+        sprintf( buf, "%-5u ", getpid() );
     }
 
     if( log->flags & LOG_LOGLEVEL )
@@ -121,33 +145,99 @@ int plog( Log log, LogFlags level, const char * fmt, ... )
         strcat( buf, _log_format( log, level ) );
     }
 
-    if( log->flags & LOG_DATE )
+    if( log->flags & (LOG_DATE | LOG_TIME) )
     {
-        strcat( buf, log_date() );
-        strcat( buf, " " );
+        char * dateptr;
+        char * timeptr;
+        _log_datetime( &dateptr, &timeptr );
+        if( log->flags & LOG_DATE )
+        {
+            strcat( buf, dateptr );
+            strcat( buf, " " );
+        }
+        if( log->flags & LOG_TIME )
+        {
+            strcat( buf, timeptr );
+            strcat( buf, " " );
+        }
     }
-    if( log->flags & LOG_TIME )
-    {
-        strcat( buf, log_time() );
-        strcat( buf, " " );
-    }
-
     if( log->flags & LOG_STDOUT )
     {
-        _log( stdout, buf, fmt );
+        _log( stdout, buf, fmt, ap );
     }
     if( log->flags & LOG_STDERR )
     {
-        _log( stdout, buf, fmt );
+        _log( stderr, buf, fmt, ap );
     }
     if( *log->filename )
     {
         FILE * flog = fopen( log->filename, "a" );
         if( !flog ) return 0;
-        _log( flog, buf, fmt );
+        _log( flog, buf, fmt, ap );
         fclose( flog );
     }
 
     return 1;
+}
+
+int plog( Log log, LogFlags level, const char * fmt, ... )
+{
+    int rc;
+    va_list ap;
+    va_start( ap, fmt );
+    rc = _plog( log, level, fmt, ap );
+    va_end( ap );
+    va_end( ap );
+    return rc;
+}
+
+int flog( Log log, const char * fmt, ... )
+{
+    int rc;
+    va_list ap;
+    va_start( ap, fmt );
+    rc = _plog( log, LOG_FATAL, fmt, ap );
+    va_end( ap );
+    return rc;
+}
+
+int elog( Log log, const char * fmt, ... )
+{
+    int rc;
+    va_list ap;
+    va_start( ap, fmt );
+    rc = _plog( log, LOG_ERROR, fmt, ap );
+    va_end( ap );
+    return rc;
+}
+
+int wlog( Log log, const char * fmt, ... )
+{
+    int rc;
+    va_list ap;
+    va_start( ap, fmt );
+    rc = _plog( log, LOG_WARN, fmt, ap );
+    va_end( ap );
+    return rc;
+}
+
+int ilog( Log log, const char * fmt, ... )
+{
+    int rc;
+    va_list ap;
+    va_start( ap, fmt );
+    rc = _plog( log, LOG_INFO, fmt, ap );
+    va_end( ap );
+    return rc;
+}
+
+int dlog( Log log, const char * fmt, ... )
+{
+    int rc;
+    va_list ap;
+    va_start( ap, fmt );
+    rc = _plog( log, LOG_DBG, fmt, ap );
+    va_end( ap );
+    return rc;
 }
 
