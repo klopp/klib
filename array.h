@@ -36,6 +36,9 @@ void * aget( Array array, size_t idx );
 int adel( Array array, size_t idx );
 void awalk( Array array, A_walk walker );
 
+typedef Array   SArray;
+#define sacreate( size )    acreate( (size), NULL )
+
 #ifdef __cplusplus
 extern "C"
 }
