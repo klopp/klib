@@ -14,21 +14,21 @@ List lcreate( L_destructor destructor )
     list->destructor = destructor;
     return list;
 }
-void lclear( List _list )
+void lclear( List list )
 {
-    if( _list )
+    if( list )
     {
-        LNode node = _list->head;
+        LNode node = list->head;
         while( node )
         {
             LNode current = node;
             node = node->next;
-            if( _list->destructor && current->data ) _list->destructor(
+            if( list->destructor && current->data ) list->destructor(
                     current->data );
             free( current );
         }
-        _list->head = _list->tail = _list->cursor = NULL;
-        _list->size = 0;
+        list->head = list->tail = list->cursor = NULL;
+        list->size = 0;
     }
 }
 
