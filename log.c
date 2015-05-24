@@ -8,7 +8,7 @@
 #include "log.h"
 #include <limits.h>
 
-static const char * _log_format( Log log, LogFlags level )
+static const char * _log_format_level( Log log, LogFlags level )
 {
     static char buf[8];
     static char fmt[] = "[%c] ";
@@ -142,7 +142,7 @@ static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
 
     if( log->flags & LOG_LOGLEVEL )
     {
-        strcat( buf, _log_format( log, level ) );
+        strcat( buf, _log_format_level( log, level ) );
     }
 
     if( log->flags & (LOG_DATE | LOG_TIME) )
