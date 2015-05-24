@@ -53,7 +53,7 @@ void * aset( Array array, size_t idx, void * data )
         array->size = newsize;
     }
     array->data[idx] = data;
-    return NULL;
+    return data;
 }
 
 void * aget( Array array, size_t idx )
@@ -86,3 +86,29 @@ void awalk( Array array, A_walk walker )
     }
 }
 
+void * saset( SArray array, size_t idx, const char * data )
+{
+    char * scopy = strdup( data );
+    if( scopy && aset( array, idx, scopy ) )
+    {
+        return scopy;
+    }
+    free( scopy );
+    return NULL;
+}
+
+static int a_compare_strings( const void * a, const void * b )
+{
+    const char ** pa = (const char **)a;
+    const char ** pb = (const char **)b;
+    if( !*pa && !*pb ) return 0;
+    if( !*pa && *pb ) return -1;
+    if( *pa && !*pb ) return 1;
+    return strcmp( *pa, *pb );
+}
+
+SArray sasort( SArray array )
+{
+    qsort( array->data, array->size, sizeof(void *), a_compare_strings );
+    return array;
+}

@@ -37,7 +37,10 @@ int adel( Array array, size_t idx );
 void awalk( Array array, A_walk walker );
 
 typedef Array   SArray;
-#define sacreate( size )    acreate( (size), NULL )
+#define sacreate( size )    acreate( (size), free )
+
+SArray sasort( SArray array );
+void * saset( SArray array, size_t idx, const char * data  );
 
 #ifdef __cplusplus
 extern "C"
