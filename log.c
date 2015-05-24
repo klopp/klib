@@ -150,15 +150,24 @@ static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
         char * dateptr;
         char * timeptr;
         _log_datetime( &dateptr, &timeptr );
-        if( log->flags & LOG_DATE )
+        if( (log->flags & (LOG_DATE | LOG_TIME)) == (LOG_DATE | LOG_TIME) )
         {
             strcat( buf, dateptr );
-            strcat( buf, " " );
-        }
-        if( log->flags & LOG_TIME )
-        {
+            strcat( buf, _log_datetime_separator( log->format_datetime ) );
             strcat( buf, timeptr );
-            strcat( buf, " " );
+        }
+        else
+        {
+            if( log->flags & LOG_DATE )
+            {
+                strcat( buf, dateptr );
+                strcat( buf, " " );
+            }
+            if( log->flags & LOG_TIME )
+            {
+                strcat( buf, timeptr );
+                strcat( buf, " " );
+            }
         }
     }
     if( log->flags & LOG_STDOUT )
