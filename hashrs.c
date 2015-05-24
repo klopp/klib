@@ -5,6 +5,8 @@
  *      Author: Vsevolod Lutovinov <klopp@yandex.ru>
  */
 
+#include "hash.h"
+
 unsigned hash_rs( unsigned startval, const char * buf, size_t size )
 {
     //static const unsigned int b = 378551;

@@ -5,6 +5,8 @@
  *      Author: Vsevolod Lutovinov <klopp@yandex.ru>
  */
 
+#include "hash.h"
+
 unsigned hash_ly( unsigned startval, const char * buf, size_t size )
 {
     unsigned hash;

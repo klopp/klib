@@ -5,6 +5,8 @@
  *      Author: Vsevolod Lutovinov <klopp@yandex.ru>
  */
 
+#include "hash.h"
+
 unsigned hash_rot13( unsigned startval, const char * buf, size_t size )
 {
     unsigned hash;
