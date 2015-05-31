@@ -17,20 +17,30 @@ extern "C"
 
 #define MBLK_SIGNATURE  0x1515
 #define MBLK_MIN        (sizeof(struct _mblk))
-#define MPOOL_MIN       1024
+#if defined(DEBUG)
+# define MPOOL_MIN       32
+#else
+# define MPOOL_MIN       1024
+#endif
+#define MP_EXPAND_FOR   1.5
 
 #pragma pack(1)
 
 typedef struct _mblk
 {
     short signature;
-    short status;
+    short is_busy;
     size_t size;
 }*mblk;
 
+/*
+ * Warning! Do not change flags manually after mp_create() call!
+ */
 typedef enum _mp_flags
 {
-    MP_DIRTY = 0x01
+    MP_DIRTY = 0x01,        // internal defrag flag
+    MP_EXPAND = 0x02,       // expand mpool memory if needed
+    MP_DEFAULT = (0x00)
 } mp_flags;
 
 typedef struct _mpool
@@ -39,17 +49,13 @@ typedef struct _mpool
     mp_flags flags;
     char * min;
     char * max;
-    char pool[1];
+    char * pool;
 }*mpool;
 
 typedef void (*mp_walker)( const mblk mb, void * data );
 
-mpool mp_create( size_t size );
-#if defined(DEBUG)
+mpool mp_create( size_t size, mp_flags flags );
 void mp_destroy( mpool mp );
-#else
-#define mp_destroy( mp ) free( (mp) )
-#endif
 
 void * mp_alloc( const mpool mp, size_t size );
 void * mp_calloc( const mpool mp, size_t size, size_t n );
