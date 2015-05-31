@@ -18,10 +18,15 @@ extern "C"
 #define MBLK_SIGNATURE  0x1515
 #define MBLK_MIN        (sizeof(struct _mblk))
 #if defined(DEBUG)
-# define MPOOL_MIN       32
+# define MPOOL_MIN      32
 #else
-# define MPOOL_MIN       1024
+# define MPOOL_MIN      1024
 #endif
+
+/*
+ * If mp_alloc() failed, new mpool will be added to chain with new
+ * size = ([old mpool size] + [requested size]) * MP_EXPAND_FOR
+ */
 #define MP_EXPAND_FOR   1.5
 
 #pragma pack(1)
@@ -45,6 +50,7 @@ typedef enum _mp_flags
 
 typedef struct _mpool
 {
+    size_t idx;
     size_t size;
     mp_flags flags;
     char * min;
@@ -53,7 +59,7 @@ typedef struct _mpool
     struct _mpool * next;
 }*mpool;
 
-typedef void (*mp_walker)( const mblk mb, void * data );
+typedef void (*mp_walker)( const mpool mp, const mblk mb, void * data );
 
 mpool mp_create( size_t size, mp_flags flags );
 void mp_destroy( mpool mp );

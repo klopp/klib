@@ -101,6 +101,7 @@ mpool mp_create( size_t size, mp_flags flags )
 
     mp->flags = flags;
     mp->size = size;
+    mp->idx = 0;
     mp->min = mp->pool + sizeof(struct _mblk);
     mp->max = mp->pool + size - MBLK_MIN;
     ((mblk)mp->pool)->is_busy = 0;
@@ -134,7 +135,7 @@ void mp_walk( const mpool mp, mp_walker walker, void * data )
 
     while( MB_VALID( mb, mp ) )
     {
-        walker( mb, data );
+        walker( mp, mb, data );
         mb = MB_NEXT( mb );
     }
     if( mp->next ) mp_walk( mp->next, walker, data );
@@ -239,6 +240,7 @@ void * mp_alloc( const mpool mp, size_t size )
         current = mp;
         while( current->next )
             current = current->next;
+        newpool->idx = current->idx + 1;
         current->next = newpool;
         ptr = _mp_alloc( newpool, size );
     }
