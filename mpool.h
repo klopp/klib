@@ -45,12 +45,15 @@ typedef void (*mp_walker)( const mblk mb, void * data );
 
 mpool mp_create( size_t size );
 void mp_destroy( mpool mp );
+
 void * mp_alloc( const mpool mp, size_t size );
 void * mp_calloc( const mpool mp, size_t size, size_t n );
 void * mp_realloc( const mpool mp, void * src, size_t size );
 int mp_free( const mpool mp, void * ptr );
 
 void mp_walk( const mpool mp, mp_walker walker, void * data );
+
+#pragma pack()
 
 #if defined(__cplusplus)
 }
