@@ -17,10 +17,10 @@
  * +--------+-----+------+------------+--------+-----+------+------------+---
  * | 0x1515 | 0/1 | size | size_bytes | 0x1515 | 0/1 | size | size_bytes |
  * +--------+-----+------+------------+--------+-----+------+------------+---
- *      |      |     |         |
+ *      ^      ^     ^         ^
  *      |      |     |         +---- memory returned by mp_alloc()
  *      |      |     +---- block size
- *      |      +---- free/busy
+ *      |      +---- is_busy
  *      +---- block signature
  */
 
@@ -66,14 +66,14 @@ static mblk MB_NEXT( mblk mb )
 #define MB_NEXT( mb ) \
         (mblk)((char *)(mb) + sizeof(struct _mblk) + (mb)->size)
 
-#define _mp_malloc( size ) malloc( (size) );
+#define _mp_malloc( size ) malloc( (size) )
 
 #endif
 
 #define MS_ALIGN( size, min ) \
     if( (size) < (min) ) (size) = (min); \
     (size) += (sizeof(size_t) - 1); \
-    (size) &= ~(sizeof(size_t) - 1);
+    (size) &= ~(sizeof(size_t) - 1)
 
 mpool mp_create( size_t size, mp_flags flags )
 {
