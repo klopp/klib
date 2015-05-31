@@ -39,7 +39,7 @@ typedef struct _mpool
     mp_flags flags;
     char * min;
     char * max;
-    char pool[sizeof(int)];
+    char pool[1];
 }*mpool;
 
 typedef void (*mp_walker)( const mblk mb, void * data );
