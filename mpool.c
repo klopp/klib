@@ -130,12 +130,7 @@ static void * _mp_alloc( const mpool mp, size_t size )
 
     if( best )
     {
-        if( best->size == size
-                || best->size < size + MBLK_MIN + sizeof(struct _mblk) )
-        {
-            // no change blosk size
-        }
-        else
+        if( best->size > size + MBLK_MIN + sizeof(struct _mblk) )
         {
             // split block
             mb = (mblk)((char *)best + sizeof(struct _mblk) + size);
