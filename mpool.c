@@ -222,12 +222,12 @@ void * mp_alloc( const mpool mp, size_t size )
     void * ptr;
     mpool current = mp;
     size_t largest = 0;
-    size_t id = mp->id; // 0?
+    size_t workhorse = 0;
 
     MS_ALIGN( size, MBLK_MIN );
     do
     {
-        id++;
+        workhorse++;
         if( current->size > largest ) largest = current->size;
         ptr = _mp_alloc( current, size );
         if( !ptr && _mp_defragment_pool( current ) ) ptr = _mp_alloc( current,
@@ -240,12 +240,32 @@ void * mp_alloc( const mpool mp, size_t size )
         mpool newpool = mp_create( (largest + size) * MP_EXPAND_FOR,
                 mp->flags );
         if( !newpool ) return NULL;
-        newpool->id = id;
 
-        // insert as base mpool->next
         if( mp->next ) newpool->next = mp->next;
         mp->next = newpool;
-        ptr = _mp_alloc( newpool, size );
+/*
+ * swap base pool and newpool:
+ */
+        newpool->id = mp->id;
+        mp->id = workhorse;
+
+        workhorse = mp->size;
+        mp->size = newpool->size;
+        newpool->size = workhorse;
+
+        ptr = mp->min;
+        mp->min = newpool->min;
+        newpool->min = ptr;
+
+        ptr = mp->max;
+        mp->max = newpool->max;
+        newpool->max = ptr;
+
+        ptr = mp->pool;
+        mp->pool = newpool->pool;
+        newpool->pool = ptr;
+
+        ptr = _mp_alloc( mp, size );
     }
     return ptr;
 }
