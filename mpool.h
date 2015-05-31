@@ -17,6 +17,7 @@ extern "C"
 
 #define MBLK_SIGNATURE  0x1515
 #define MBLK_MIN        (sizeof(struct _mblk))
+#define MPOOL_MIN       1024
 
 #pragma pack(1)
 

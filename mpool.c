@@ -33,11 +33,18 @@
     (char *)((mb)+1) <= (mp)->max && \
     (mb)->signature == MBLK_SIGNATURE)
 
+#define MS_ALIGN( size, min ) \
+    if( (size) < (min) ) (size) = (min); \
+    (size) += (sizeof(size_t) - 1); \
+    (size) &= ~(sizeof(size_t) - 1);
+
 mpool mp_create( size_t size )
 {
-    /*size_t add_size = sizeof(struct _mblk);*/
-    mpool mp = malloc(
-            sizeof(struct _mpool) + size + sizeof(struct _mblk) /*+ add_size*/ );
+    mpool mp;
+
+    MS_ALIGN( size, MPOOL_MIN );
+    mp = malloc(
+            sizeof(struct _mpool) + size + sizeof(struct _mblk) );
     if( !mp ) return NULL;
 
     mp->flags = 0;
@@ -151,10 +158,7 @@ void * mp_alloc( const mpool mp, size_t size )
 {
     void * ptr;
 
-    if( size < MBLK_MIN ) size = MBLK_MIN;
-    size += (sizeof(int) - 1);
-    size &= ~(sizeof(int) - 1);
-
+    MS_ALIGN( size, MBLK_MIN );
     ptr = _mp_alloc( mp, size );
     if( !ptr && _mp_defragment( mp ) ) ptr = _mp_alloc( mp, size );
     if( ptr ) mp->flags |= MP_DIRTY;
