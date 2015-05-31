@@ -8,6 +8,21 @@
 #include "mpool.h"
 #include <string.h>
 
+/*
+     mpool.pool structure:
+
+     +---- struct _mblk ---+  allocated +---- struct _mblk ---+  allocated +---
+     |                     |   memory   |                     |    memory  |
+     +--------+-----+------+------------+--------+-----+------+------------+---
+     | 0x1515 | 0/1 | size | size_bytes | 0x1515 | 0/1 | size | size_bytes |
+     +--------+-----+------+------------+--------+-----+------+------------+---
+         |       |      |        |
+         |       |      |        +---- memory returned by mp_alloc()
+         |       |      +---- block size
+         |       +---- free/busy
+         +---- block signature
+*/
+
 #define MP_VALID( ptr, mp ) \
     ((char *)(ptr) >= (mp)->min && \
     (char *)(ptr) <= (mp)->max && \
