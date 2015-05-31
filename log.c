@@ -6,7 +6,6 @@
  */
 
 #include "log.h"
-#include <limits.h>
 
 static const char * _log_format_level( Log log, LogFlags level )
 {
