@@ -9,19 +9,19 @@
 #include <string.h>
 
 /*
-     mpool.pool structure:
+ mpool.pool structure:
 
-     +---- struct _mblk ---+  allocated +---- struct _mblk ---+  allocated +---
-     |                     |   memory   |                     |    memory  |
-     +--------+-----+------+------------+--------+-----+------+------------+---
-     | 0x1515 | 0/1 | size | size_bytes | 0x1515 | 0/1 | size | size_bytes |
-     +--------+-----+------+------------+--------+-----+------+------------+---
-         |       |      |        |
-         |       |      |        +---- memory returned by mp_alloc()
-         |       |      +---- block size
-         |       +---- free/busy
-         +---- block signature
-*/
+ +---- struct _mblk ---+  allocated +---- struct _mblk ---+  allocated +---
+ |                     |   memory   |                     |    memory  |
+ +--------+-----+------+------------+--------+-----+------+------------+---
+ | 0x1515 | 0/1 | size | size_bytes | 0x1515 | 0/1 | size | size_bytes |
+ +--------+-----+------+------------+--------+-----+------+------------+---
+ |       |      |        |
+ |       |      |        +---- memory returned by mp_alloc()
+ |       |      +---- block size
+ |       +---- free/busy
+ +---- block signature
+ */
 
 #define MP_VALID( ptr, mp ) \
     ((char *)(ptr) >= (mp)->min && \
@@ -119,12 +119,7 @@ static void * _mp_alloc( const mpool mp, size_t size )
                 best = mb;
                 break;
             }
-            if( !best )
-            {
-                best = mb;
-                min = mb->size;
-            }
-            else if( mb->size < min )
+            if( !best || mb->size < min )
             {
                 best = mb;
                 min = mb->size;
@@ -135,21 +130,20 @@ static void * _mp_alloc( const mpool mp, size_t size )
 
     if( best )
     {
-        if( best->size == size )
+        if( best->size == size
+                || best->size < size + MBLK_MIN + sizeof(struct _mblk) )
         {
-            best->status = 1;
-            return best + 1;
+            // no change blosk size
         }
-        if( best->size < size + MBLK_MIN + sizeof(struct _mblk) )
+        else
         {
-            best->status = 1;
-            return best + 1;
+            // split block
+            mb = (mblk)((char *)best + sizeof(struct _mblk) + size);
+            mb->status = 0;
+            mb->signature = MBLK_SIGNATURE;
+            mb->size = best->size - size - sizeof(struct _mblk);
+            best->size = size;
         }
-        mb = (mblk)((char *)best + sizeof(struct _mblk) + size);
-        mb->status = 0;
-        mb->signature = MBLK_SIGNATURE;
-        mb->size = best->size - size - sizeof(struct _mblk);
-        best->size = size;
         best->status = 1;
         return best + 1;
     }
