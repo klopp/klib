@@ -35,8 +35,9 @@
 
 mpool mp_create( size_t size )
 {
-    size_t add_size = sizeof(struct _mblk);
-    mpool mp = malloc( sizeof(struct _mpool) + size + add_size );
+    /*size_t add_size = sizeof(struct _mblk);*/
+    mpool mp = malloc(
+            sizeof(struct _mpool) + size + sizeof(struct _mblk) /*+ add_size*/ );
     if( !mp ) return NULL;
 
     mp->flags = 0;
