@@ -50,6 +50,7 @@ typedef struct _mpool
     char * min;
     char * max;
     char * pool;
+    struct _mpool * next;
 }*mpool;
 
 typedef void (*mp_walker)( const mblk mb, void * data );
