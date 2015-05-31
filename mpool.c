@@ -9,13 +9,13 @@
 #include <string.h>
 
 #define MP_VALID( ptr, mp ) \
-    ((unsigned char *)(ptr) >= (mp)->min && \
-    (unsigned char *)(ptr) <= (mp)->max && \
+    ((char *)(ptr) >= (mp)->min && \
+    (char *)(ptr) <= (mp)->max && \
     (((struct _mblk *)(ptr)) - 1)->signature == MBLK_SIGNATURE)
 
 #define MB_VALID( mb, mp ) \
-    ((unsigned char *)((mb)+1) >= (mp)->min && \
-    (unsigned char *)((mb)+1) <= (mp)->max && \
+    ((char *)((mb)+1) >= (mp)->min && \
+    (char *)((mb)+1) <= (mp)->max && \
     (mb)->signature == MBLK_SIGNATURE)
 
 mpool mp_create( size_t size )
@@ -61,7 +61,7 @@ void mp_walk( const mpool mp, mp_walker walker, void * data )
     while( MB_VALID( mb, mp ) )
     {
         walker( mb, data );
-        mb = (mblk)((unsigned char *)mb + sizeof(struct _mblk) + mb->size);
+        mb = (mblk)((char *)mb + sizeof(struct _mblk) + mb->size);
     }
 }
 
@@ -76,7 +76,7 @@ static size_t _mp_defragment( const mpool mp )
     mb = (mblk)mp->pool;
     while( MB_VALID( mb, mp ) )
     {
-        next = (mblk)((unsigned char *)mb + sizeof(struct _mblk) + mb->size);
+        next = (mblk)((char *)mb + sizeof(struct _mblk) + mb->size);
         if( !MB_VALID( next, mp ) ) break;
         if( mb->status || next->status )
         {
@@ -116,7 +116,7 @@ static void * _mp_alloc( const mpool mp, size_t size )
                 min = mb->size;
             }
         }
-        mb = (mblk)((unsigned char *)mb + sizeof(struct _mblk) + mb->size);
+        mb = (mblk)((char *)mb + sizeof(struct _mblk) + mb->size);
     }
 
     if( best )
@@ -131,7 +131,7 @@ static void * _mp_alloc( const mpool mp, size_t size )
             best->status = 1;
             return best + 1;
         }
-        mb = (mblk)((unsigned char *)best + sizeof(struct _mblk) + size);
+        mb = (mblk)((char *)best + sizeof(struct _mblk) + size);
         mb->status = 0;
         mb->signature = MBLK_SIGNATURE;
         mb->size = best->size - size - sizeof(struct _mblk);

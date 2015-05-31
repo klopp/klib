@@ -36,9 +36,9 @@ typedef struct _mpool
 {
     size_t size;
     mp_flags flags;
-    unsigned char * pool;
-    unsigned char * min;
-    unsigned char * max;
+    char * pool;
+    char * min;
+    char * max;
 }*mpool;
 
 typedef void (*mp_walker)( const mblk mb, void * data );
