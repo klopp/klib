@@ -20,16 +20,10 @@
 
 mpool mp_create( size_t size )
 {
-    size_t add_size = sizeof(struct _mblk);  //(size / MBLK_MIN) * sizeof(struct _mblk);
-    mpool mp = malloc( sizeof(struct _mpool) );
+    size_t add_size = sizeof(struct _mblk);
+    mpool mp = malloc( sizeof(struct _mpool) + size + add_size );
     if( !mp ) return NULL;
 
-    mp->pool = malloc( add_size + size );
-    if( !mp->pool )
-    {
-        free( mp );
-        return NULL;
-    }
     mp->flags = 0;
     mp->size = size;
     mp->min = mp->pool + sizeof(struct _mblk);
@@ -41,11 +35,14 @@ mpool mp_create( size_t size )
     return mp;
 }
 
+#if defined(DEBUG)
+
 void mp_destroy( mpool mp )
 {
-    free( mp->pool );
     free( mp );
 }
+
+#endif
 
 void * mp_calloc( const mpool mp, size_t size, size_t n )
 {

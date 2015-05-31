@@ -36,16 +36,19 @@ typedef struct _mpool
 {
     size_t size;
     mp_flags flags;
-    //const char * error;
-    char * pool;
     char * min;
     char * max;
+    char pool[sizeof(int)];
 }*mpool;
 
 typedef void (*mp_walker)( const mblk mb, void * data );
 
 mpool mp_create( size_t size );
+#if defined(DEBUG)
 void mp_destroy( mpool mp );
+#else
+#define mp_destroy( mp ) free( (mp) )
+#endif
 
 void * mp_alloc( const mpool mp, size_t size );
 void * mp_calloc( const mpool mp, size_t size, size_t n );
