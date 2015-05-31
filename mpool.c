@@ -99,15 +99,15 @@ mpool mp_create( size_t size, mp_flags flags )
         }
     }
 
-    mp->flags = flags;
+    mp->id = 0;
     mp->size = size;
-    mp->idx = 0;
+    mp->next = NULL;
+    mp->flags = flags;
     mp->min = mp->pool + sizeof(struct _mblk);
     mp->max = mp->pool + size - MBLK_MIN;
     ((mblk)mp->pool)->is_busy = 0;
     ((mblk)mp->pool)->size = size;
     ((mblk)mp->pool)->signature = MBLK_SIGNATURE;
-    mp->next = NULL;
 
     return mp;
 }
@@ -221,11 +221,14 @@ void * mp_alloc( const mpool mp, size_t size )
 {
     void * ptr;
     mpool current = mp;
+    size_t largest = 0;
+    size_t id = mp->id; // 0?
 
     MS_ALIGN( size, MBLK_MIN );
-
     do
     {
+        id++;
+        if( current->size > largest ) largest = current->size;
         ptr = _mp_alloc( current, size );
         if( !ptr && _mp_defragment_pool( current ) ) ptr = _mp_alloc( current,
                 size );
@@ -234,14 +237,14 @@ void * mp_alloc( const mpool mp, size_t size )
 
     if( !ptr && (mp->flags & MP_EXPAND) == MP_EXPAND )
     {
-        mpool newpool = mp_create( (mp->size + size) * MP_EXPAND_FOR,
+        mpool newpool = mp_create( (largest + size) * MP_EXPAND_FOR,
                 mp->flags );
         if( !newpool ) return NULL;
-        current = mp;
-        while( current->next )
-            current = current->next;
-        newpool->idx = current->idx + 1;
-        current->next = newpool;
+        newpool->id = id;
+
+        // insert as base mpool->next
+        if( mp->next ) newpool->next = mp->next;
+        mp->next = newpool;
         ptr = _mp_alloc( newpool, size );
     }
     return ptr;
@@ -262,7 +265,9 @@ void * mp_realloc( const mpool mp, void * src, size_t size )
 int mp_free( const mpool mp, void * ptr )
 {
     if( !ptr || !mp ) return 0;
+
     if( !MP_VALID( ptr, mp ) ) return mp_free( mp->next, ptr );
+
     if( (((struct _mblk *)ptr) - 1)->is_busy )
     {
         (((struct _mblk *)ptr) - 1)->is_busy = 0;

@@ -50,7 +50,7 @@ typedef enum _mp_flags
 
 typedef struct _mpool
 {
-    size_t idx;
+    size_t id;
     size_t size;
     mp_flags flags;
     char * min;
