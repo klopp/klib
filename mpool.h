@@ -36,6 +36,7 @@ typedef struct _mpool
 {
     size_t size;
     mp_flags flags;
+    //const char * error;
     char * pool;
     char * min;
     char * max;

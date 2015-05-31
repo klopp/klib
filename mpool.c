@@ -22,8 +22,8 @@ mpool mp_create( size_t size )
 {
     size_t add_size = sizeof(struct _mblk);  //(size / MBLK_MIN) * sizeof(struct _mblk);
     mpool mp = malloc( sizeof(struct _mpool) );
-
     if( !mp ) return NULL;
+
     mp->pool = malloc( add_size + size );
     if( !mp->pool )
     {
@@ -68,12 +68,14 @@ void mp_walk( const mpool mp, mp_walker walker, void * data )
 static size_t _mp_defragment( const mpool mp )
 {
     mblk mb;
-    size_t junctions = 0;
     mblk next;
+    size_t junctions;
 
-    if( (mp->flags & MP_DIRTY) != MP_DIRTY ) return junctions;
+    if( (mp->flags & MP_DIRTY) != MP_DIRTY ) return 0;
 
+    junctions = 0;
     mb = (mblk)mp->pool;
+
     while( MB_VALID( mb, mp ) )
     {
         next = (mblk)((char *)mb + sizeof(struct _mblk) + mb->size);
@@ -172,7 +174,10 @@ void * mp_realloc( const mpool mp, void * src, size_t size )
 int mp_free( const mpool mp, void * ptr )
 {
     if( !ptr || !mp || !MP_VALID( ptr, mp ) ) return 0;
-    (((struct _mblk *)ptr) - 1)->status = 0;
-    mp->flags |= MP_DIRTY;
+    if( (((struct _mblk *)ptr) - 1)->status )
+    {
+        (((struct _mblk *)ptr) - 1)->status = 0;
+        mp->flags |= MP_DIRTY;
+    }
     return 1;
 }
