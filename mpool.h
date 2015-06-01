@@ -31,10 +31,15 @@ extern "C"
 
 #pragma pack(1)
 
+typedef enum _mb_flags
+{
+    MB_BUSY = 0x01, MB_LOCKED = 0x02
+} mb_flags;
+
 typedef struct _mblk
 {
-    short signature;
-    short is_busy;
+    unsigned short signature;
+    unsigned short flags;
     size_t size;
 }*mblk;
 
@@ -66,7 +71,11 @@ void mp_destroy( mpool mp );
 
 void * mp_alloc( const mpool mp, size_t size );
 void * mp_calloc( const mpool mp, size_t size, size_t n );
+
+int mp_lock( const mpool mp, void * ptr );
+int mp_unlock( const mpool mp, void * ptr );
 void * mp_realloc( const mpool mp, void * src, size_t size );
+
 int mp_free( const mpool mp, void * ptr );
 
 void mp_walk( const mpool mp, mp_walker walker, void * data );

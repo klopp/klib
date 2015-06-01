@@ -75,14 +75,18 @@ static mblk MB_NEXT( mblk mb )
     (size) += (sizeof(size_t) - 1); \
     (size) &= ~(sizeof(size_t) - 1)
 
+#define SWAP( tmp, a, b ) \
+    (tmp) = (a); \
+    (a) = (b); \
+    (b) = (tmp)
+
 /*
  * Recursive check for all mpools in chain:
  */
 static int _mp_valid_ptr( void * ptr, const mpool mp )
 {
     if( !mp || !ptr ) return 0;
-    if( !MP_VALID( ptr, mp ) ) return _mp_valid_ptr( ptr, mp->next );
-    return 1;
+    return MP_VALID( ptr, mp ) ? 1 : _mp_valid_ptr( ptr, mp->next );
 }
 
 mpool mp_create( size_t size, mp_flags flags )
@@ -115,7 +119,7 @@ mpool mp_create( size_t size, mp_flags flags )
     mp->flags = flags;
     mp->min = mp->pool + sizeof(struct _mblk);
     mp->max = mp->pool + size - MBLK_MIN;
-    ((mblk)mp->pool)->is_busy = 0;
+    ((mblk)mp->pool)->flags = 0;
     ((mblk)mp->pool)->size = size;
     ((mblk)mp->pool)->signature = MBLK_SIGNATURE;
 
@@ -169,7 +173,7 @@ static size_t _mp_defragment_pool( const mpool mp )
     {
         next = MB_NEXT( mb );
         if( !MB_VALID( next, mp ) ) break;
-        if( mb->is_busy || next->is_busy )
+        if( (mb->flags & MB_BUSY) || (next->flags & MB_BUSY) )
         {
             mb = next;
             continue;
@@ -192,7 +196,7 @@ static void * _mp_alloc( const mpool mp, size_t size )
 
     while( MB_VALID( mb, mp ) )
     {
-        if( !mb->is_busy && mb->size >= size )
+        if( !(mb->flags & MB_BUSY) && mb->size >= size )
         {
             if( mb->size == size )
             {
@@ -214,12 +218,11 @@ static void * _mp_alloc( const mpool mp, size_t size )
         {
             // split block
             mb = (mblk)((char *)best + sizeof(struct _mblk) + size);
-            mb->is_busy = 0;
             mb->signature = MBLK_SIGNATURE;
             mb->size = best->size - size - sizeof(struct _mblk);
             best->size = size;
         }
-        best->is_busy = 1;
+        best->flags = MB_BUSY;
         mp->flags |= MP_DIRTY;
         return best + 1;
     }
@@ -259,25 +262,40 @@ void * mp_alloc( const mpool mp, size_t size )
         newpool->id = mp->id;
         mp->id = workhorse;
 
-        workhorse = mp->size;
-        mp->size = newpool->size;
-        newpool->size = workhorse;
-
-        ptr = mp->min;
-        mp->min = newpool->min;
-        newpool->min = ptr;
-
-        ptr = mp->max;
-        mp->max = newpool->max;
-        newpool->max = ptr;
-
-        ptr = mp->pool;
-        mp->pool = newpool->pool;
-        newpool->pool = ptr;
+        SWAP( workhorse, mp->size, newpool->size );
+        SWAP( ptr, mp->min, newpool->min );
+        SWAP( ptr, mp->max, newpool->max );
+        SWAP( ptr, mp->pool, newpool->pool );
 
         ptr = _mp_alloc( mp, size );
     }
     return ptr;
+}
+
+int mp_lock( const mpool mp, void * ptr )
+{
+    if( _mp_valid_ptr( ptr, mp ) )
+    {
+        if( (((struct _mblk *)ptr) - 1)->flags & MB_BUSY )
+        {
+            (((struct _mblk *)ptr) - 1)->flags |= MB_LOCKED;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int mp_unlock( const mpool mp, void * ptr )
+{
+    if( _mp_valid_ptr( ptr, mp ) )
+    {
+        if( (((struct _mblk *)ptr) - 1)->flags & MB_LOCKED )
+        {
+            (((struct _mblk *)ptr) - 1)->flags &= ~(MB_LOCKED);
+            return 1;
+        }
+    }
+    return 0;
 }
 
 void * mp_realloc( const mpool mp, void * src, size_t size )
@@ -304,11 +322,9 @@ int mp_free( const mpool mp, void * ptr )
 
     if( !MP_VALID( ptr, mp ) ) return mp_free( mp->next, ptr );
 
-    if( (((struct _mblk *)ptr) - 1)->is_busy )
-    {
-        (((struct _mblk *)ptr) - 1)->is_busy = 0;
-        mp->flags |= MP_DIRTY;
-        return 1;
-    }
-    return 0;
+    if( (((struct _mblk *)ptr) - 1)->flags & MB_LOCKED ) return 0;
+
+    if( (((struct _mblk *)ptr) - 1)->flags & MB_BUSY ) mp->flags |= MP_DIRTY;
+    (((struct _mblk *)ptr) - 1)->flags = 0;
+    return 1;
 }
