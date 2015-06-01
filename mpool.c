@@ -75,6 +75,16 @@ static mblk MB_NEXT( mblk mb )
     (size) += (sizeof(size_t) - 1); \
     (size) &= ~(sizeof(size_t) - 1)
 
+/*
+ * Recursive check for all mpools in chain:
+ */
+static int _mp_valid_ptr( void * ptr, const mpool mp )
+{
+    if( !mp || !ptr ) return 0;
+    if( !MP_VALID( ptr, mp ) ) return _mp_valid_ptr( ptr, mp->next );
+    return 1;
+}
+
 mpool mp_create( size_t size, mp_flags flags )
 {
     mpool mp;
@@ -243,9 +253,9 @@ void * mp_alloc( const mpool mp, size_t size )
 
         if( mp->next ) newpool->next = mp->next;
         mp->next = newpool;
-/*
- * swap base pool and newpool:
- */
+        /*
+         * swap base pool and newpool:
+         */
         newpool->id = mp->id;
         mp->id = workhorse;
 
@@ -272,12 +282,18 @@ void * mp_alloc( const mpool mp, size_t size )
 
 void * mp_realloc( const mpool mp, void * src, size_t size )
 {
-    void * dest = mp_alloc( mp, size );
+    void * dest = NULL;
 
-    if( dest )
+    if( _mp_valid_ptr( src, mp ) )
     {
-        memcpy( dest, src, (((struct _mblk *)src) - 1)->size );
-        mp_free( mp, src );
+        dest = mp_alloc( mp, size );
+        if( dest )
+        {
+            size_t tomove = (((struct _mblk *)src) - 1)->size;
+            if( tomove > size ) tomove = size;
+            memcpy( dest, src, tomove );
+            mp_free( mp, src );
+        }
     }
     return dest;
 }
