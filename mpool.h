@@ -73,6 +73,7 @@ void * mp_alloc( const mpool mp, size_t size );
 void * mp_calloc( const mpool mp, size_t size, size_t n );
 
 int mp_lock( const mpool mp, void * ptr );
+int mp_locked( const mpool mp, void * ptr );
 int mp_unlock( const mpool mp, void * ptr );
 void * mp_realloc( const mpool mp, void * src, size_t size );
 

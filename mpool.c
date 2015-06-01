@@ -298,19 +298,31 @@ int mp_unlock( const mpool mp, void * ptr )
     return 0;
 }
 
+int mp_locked( const mpool mp, void * ptr )
+{
+    if( _mp_valid_ptr( ptr, mp ) )
+    {
+        return (((struct _mblk *)ptr) - 1)->flags & MB_LOCKED;
+    }
+    return 0;
+}
+
 void * mp_realloc( const mpool mp, void * src, size_t size )
 {
     void * dest = NULL;
 
     if( _mp_valid_ptr( src, mp ) )
     {
-        dest = mp_alloc( mp, size );
-        if( dest )
+        if( !((((struct _mblk *)src) - 1)->flags & MB_LOCKED) )
         {
-            size_t tomove = (((struct _mblk *)src) - 1)->size;
-            if( tomove > size ) tomove = size;
-            memcpy( dest, src, tomove );
-            mp_free( mp, src );
+            dest = mp_alloc( mp, size );
+            if( dest )
+            {
+                size_t tomove = (((struct _mblk *)src) - 1)->size;
+                if( tomove > size ) tomove = size;
+                memcpy( dest, src, tomove );
+                mp_free( mp, src );
+            }
         }
     }
     return dest;
