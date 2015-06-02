@@ -14,12 +14,12 @@
  * +---- struct _mblk ---+  allocated +---- struct _mblk ---+  allocated +---
  * |                     |   memory   |                     |    memory  |
  * +--------+-----+------+------------+--------+-----+------+------------+---
- * | 0x1515 | 0/1 | size | size_bytes | 0x1515 | 0/1 | size | size_bytes |
+ * | 0x1515 | 0x0 | size | size_bytes | 0x1515 | 0/1 | size | size_bytes |
  * +--------+-----+------+------------+--------+-----+------+------------+---
  *      ^      ^     ^         ^
  *      |      |     |         +---- memory returned by mp_alloc()
  *      |      |     +---- block size
- *      |      +---- is_busy
+ *      |      +---- flags
  *      +---- block signature
  */
 
@@ -272,6 +272,7 @@ void * mp_alloc( const mpool mp, size_t size )
     return ptr;
 }
 
+#if MP_USE_LOCKING
 int mp_lock( const mpool mp, void * ptr )
 {
     if( _mp_valid_ptr( ptr, mp ) )
@@ -300,12 +301,10 @@ int mp_unlock( const mpool mp, void * ptr )
 
 int mp_locked( const mpool mp, void * ptr )
 {
-    if( _mp_valid_ptr( ptr, mp ) )
-    {
-        return (((struct _mblk *)ptr) - 1)->flags & MB_LOCKED;
-    }
-    return 0;
+    return _mp_valid_ptr( ptr, mp ) ?
+            ((((struct _mblk *)ptr) - 1)->flags & MB_LOCKED) : 0;
 }
+#endif
 
 void * mp_realloc( const mpool mp, void * src, size_t size )
 {
@@ -313,8 +312,10 @@ void * mp_realloc( const mpool mp, void * src, size_t size )
 
     if( _mp_valid_ptr( src, mp ) )
     {
+#if MP_USE_LOCKING
         if( !((((struct _mblk *)src) - 1)->flags & MB_LOCKED) )
         {
+#endif
             dest = mp_alloc( mp, size );
             if( dest )
             {
@@ -323,7 +324,9 @@ void * mp_realloc( const mpool mp, void * src, size_t size )
                 memcpy( dest, src, tomove );
                 mp_free( mp, src );
             }
+#if MP_USE_LOCKING
         }
+#endif
     }
     return dest;
 }
@@ -334,7 +337,9 @@ int mp_free( const mpool mp, void * ptr )
 
     if( !MP_VALID( ptr, mp ) ) return mp_free( mp->next, ptr );
 
+#if MP_USE_LOCKING
     if( (((struct _mblk *)ptr) - 1)->flags & MB_LOCKED ) return 0;
+#endif
 
     if( (((struct _mblk *)ptr) - 1)->flags & MB_BUSY ) mp->flags |= MP_DIRTY;
     (((struct _mblk *)ptr) - 1)->flags = 0;

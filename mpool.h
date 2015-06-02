@@ -29,6 +29,8 @@ extern "C"
  */
 #define MP_EXPAND_FOR   1.5
 
+#define MP_USE_LOCKING  0
+
 #pragma pack(1)
 
 typedef enum _mb_flags
@@ -72,9 +74,12 @@ void mp_destroy( mpool mp );
 void * mp_alloc( const mpool mp, size_t size );
 void * mp_calloc( const mpool mp, size_t size, size_t n );
 
+#if MP_USE_LOCKING
 int mp_lock( const mpool mp, void * ptr );
 int mp_locked( const mpool mp, void * ptr );
 int mp_unlock( const mpool mp, void * ptr );
+#endif
+
 void * mp_realloc( const mpool mp, void * src, size_t size );
 
 int mp_free( const mpool mp, void * ptr );
