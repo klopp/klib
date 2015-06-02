@@ -219,6 +219,7 @@ static void * _mp_alloc( const mpool mp, size_t size )
             // split block
             mb = (mblk)((char *)best + sizeof(struct _mblk) + size);
             mb->signature = MBLK_SIGNATURE;
+            mb->flags = 0;
             mb->size = best->size - size - sizeof(struct _mblk);
             best->size = size;
         }
