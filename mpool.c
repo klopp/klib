@@ -14,7 +14,7 @@
  * +---- struct _mblk ---+  allocated +---- struct _mblk ---+  allocated +---
  * |                     |   memory   |                     |    memory  |
  * +--------+-----+------+------------+--------+-----+------+------------+---
- * | 0x1515 | 0x0 | size | size_bytes | 0x1515 | 0/1 | size | size_bytes |
+ * | 0x1515 | 0x0 | size | size_bytes | 0x1515 | 0x0 | size | size_bytes |
  * +--------+-----+------+------------+--------+-----+------+------------+---
  *      ^      ^     ^         ^
  *      |      |     |         +---- memory returned by mp_alloc()
@@ -28,22 +28,21 @@
 static void * _mp_malloc( size_t size )
 {
     void * ptr = malloc( size );
-    if( ptr ) memset( ptr, 0x99, size );
+    if( ptr ) memset( ptr, 0x69, size );
     return ptr;
 }
 
 static int MP_VALID( void * ptr, mpool mp )
 {
-    if( (char *)(ptr) < mp->min ) return 0;
-    if( (char *)(ptr) > mp->max ) return 0;
+    if( (char *)(ptr) < mp->min || (char *)(ptr) > mp->max ) return 0;
     return ((((struct _mblk *)(ptr)) - 1)->signature == MBLK_SIGNATURE);
 }
 
 static int MB_VALID( mblk mb, mpool mp )
 {
-    if( (char *)((mb) + 1) < mp->min ) return 0;
-    if( (char *)((mb) + 1) > mp->max ) return 0;
-    return (mb->signature == MBLK_SIGNATURE);
+    if( mb->signature != MBLK_SIGNATURE ) return 0;
+    mb++;
+    return (char *)(mb) >= mp->min && (char *)(mb) <= mp->max;
 }
 
 static mblk MB_NEXT( mblk mb )
@@ -303,7 +302,7 @@ int mp_unlock( const mpool mp, void * ptr )
 int mp_locked( const mpool mp, void * ptr )
 {
     return _mp_valid_ptr( ptr, mp ) ?
-            ((((struct _mblk *)ptr) - 1)->flags & MB_LOCKED) : 0;
+    ((((struct _mblk *)ptr) - 1)->flags & MB_LOCKED) : 0;
 }
 #endif
 
@@ -317,16 +316,16 @@ void * mp_realloc( const mpool mp, void * src, size_t size )
         if( !((((struct _mblk *)src) - 1)->flags & MB_LOCKED) )
         {
 #endif
-            dest = mp_alloc( mp, size );
-            if( dest )
-            {
-                size_t tomove = (((struct _mblk *)src) - 1)->size;
-                if( tomove > size ) tomove = size;
-                memcpy( dest, src, tomove );
-                mp_free( mp, src );
-            }
-#if MP_USE_LOCKING
+        dest = mp_alloc( mp, size );
+        if( dest )
+        {
+            size_t tomove = (((struct _mblk *)src) - 1)->size;
+            if( tomove > size ) tomove = size;
+            memcpy( dest, src, tomove );
+            mp_free( mp, src );
         }
+#if MP_USE_LOCKING
+    }
 #endif
     }
     return dest;
