@@ -42,4 +42,23 @@
 # endif
 #endif
 
+#include <stdlib.h>
+#include <string.h>
+
+#if defined(USE_MPOOL)
+# include "mpool.h"
+# define Malloc( size )         mp_alloc( NULL, (size) )
+# define Strdup( s )            mp_strdup( NULL, (s) )
+# define Calloc( size, n )      mp_calloc( NULL, (size), (n) )
+# define Realloc( src, n )      mp_realloc( NULL, (src), (n) )
+# define Free( ptr )            mp_free( NULL, (ptr) )
+#else
+# define Malloc( size )         malloc( (size) )
+# define Strdup( s )            strdup( (s) )
+# define Calloc( size, n )      calloc( (size), (n) )
+# define Realloc( src, n )      realloc( (src), (n) )
+# define Free( ptr )            free( (ptr) )
+#endif
+
+
 #endif /* CONFIG_H_ */

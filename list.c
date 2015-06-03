@@ -9,7 +9,7 @@
 
 List lcreate( L_destructor destructor )
 {
-    List list = calloc( sizeof(struct _List), 1 );
+    List list = Calloc( sizeof(struct _List), 1 );
     if( !list ) return NULL;
     list->destructor = destructor;
     return list;
@@ -25,7 +25,7 @@ void lclear( List list )
             node = node->next;
             if( list->destructor && current->data ) list->destructor(
                     current->data );
-            free( current );
+            Free( current );
         }
         list->head = list->tail = list->cursor = NULL;
         list->size = 0;
@@ -37,7 +37,7 @@ void ldestroy( List list )
     if( list )
     {
         lclear( list );
-        free( list );
+        Free( list );
     }
 }
 
@@ -45,7 +45,7 @@ void * ladd( List list, void * data )
 {
     if( list && data )
     {
-        LNode node = calloc( sizeof(struct _LNode), 1 );
+        LNode node = Calloc( sizeof(struct _LNode), 1 );
         if( !node ) return NULL;
         node->data = data;
         if( !list->head )
@@ -68,7 +68,7 @@ void * lpoke( List list, void * data )
 {
     if( list && data )
     {
-        LNode node = calloc( sizeof(struct _LNode), 1 );
+        LNode node = Calloc( sizeof(struct _LNode), 1 );
         if( !node ) return NULL;
         node->data = data;
         if( !list->head )
@@ -121,7 +121,7 @@ void * lgethead( List list )
         void * data = list->head->data;
         LNode node = list->head;
         list->head = list->head->next;
-        free( node );
+        Free( node );
         if( list->head ) list->head->prev = NULL;
         list->size--;
         if( !list->size ) list->tail = NULL;
@@ -137,7 +137,7 @@ void * lgettail( List list )
         void * data = list->tail->data;
         LNode node = list->tail;
         list->tail = list->tail->prev;
-        free( node );
+        Free( node );
         if( list->tail ) list->tail->next = NULL;
         list->size--;
         if( !list->size ) list->head = NULL;

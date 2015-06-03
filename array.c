@@ -9,13 +9,13 @@
 
 Array acreate( size_t size, A_destructor destructor )
 {
-    Array array = malloc( sizeof(struct _Array) );
+    Array array = Malloc( sizeof(struct _Array) );
     if( !array ) return NULL;
 
-    array->data = calloc( sizeof(void *), size );
+    array->data = Calloc( sizeof(void *), size );
     if( !array->data )
     {
-        free( array );
+        Free( array );
         return NULL;
     }
     array->destructor = destructor;
@@ -35,8 +35,8 @@ void adestroy( Array array )
                 if( array->data[i] ) array->destructor( array->data[i] );
             }
         }
-        free( array->data );
-        free( array );
+        Free( array->data );
+        Free( array );
     }
 }
 
@@ -45,10 +45,10 @@ void * aset( Array array, size_t idx, void * data )
     if( idx >= array->size )
     {
         size_t newsize = idx * ARR_K_EXPAND;
-        void ** ptr = calloc( newsize, sizeof(void **) );
+        void ** ptr = Calloc( newsize, sizeof(void **) );
         if( !ptr ) return NULL;
         memcpy( ptr, array->data, array->size * sizeof(void **) );
-        free( array->data );
+        Free( array->data );
         array->data = ptr;
         array->size = newsize;
     }
@@ -88,12 +88,12 @@ void awalk( Array array, A_walk walker )
 
 void * saset( SArray array, size_t idx, const char * data )
 {
-    char * scopy = strdup( data );
+    char * scopy = Strdup( data );
     if( scopy && aset( array, idx, scopy ) )
     {
         return scopy;
     }
-    free( scopy );
+    Free( scopy );
     return NULL;
 }
 

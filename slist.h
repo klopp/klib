@@ -11,7 +11,6 @@
 #include "config.h"
 
 #include "list.h"
-#include <string.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -23,11 +22,7 @@ extern "C"
  */
 typedef List    SList;
 
-#if defined(DEBUG)
 SList slcreate( void );
-#else
-# define slcreate() lcreate( free )
-#endif
 char * sladd( List list, const char * data );
 char * slpoke( List list, const char * data );
 

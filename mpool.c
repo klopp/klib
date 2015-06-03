@@ -7,6 +7,7 @@
 
 #include "mpool.h"
 #include <string.h>
+#include <math.h>
 
 /*
  * mpool.pool structure:
@@ -40,9 +41,8 @@ static int MP_VALID( void * ptr, mpool mp )
 
 static int MB_VALID( mblk mb, mpool mp )
 {
-    if( mb->signature != MBLK_SIGNATURE ) return 0;
-    mb++;
-    return (char *)(mb) >= mp->min && (char *)(mb) <= mp->max;
+    if( (char *)(mb + 1) < mp->min || (char *)(mb + 1) > mp->max ) return 0;
+    return (mb->signature == MBLK_SIGNATURE);
 }
 
 static mblk MB_NEXT( mblk mb )
@@ -79,6 +79,18 @@ static mblk MB_NEXT( mblk mb )
     (a) = (b); \
     (b) = (tmp)
 
+static mpool _mp = NULL;
+static int _mp_atexit = 0;
+static void _mp_destroy( void )
+{
+    mp_destroy( _mp );
+}
+
+#define MP_SET( mp ) \
+    if( !mp ) { \
+    if( !_mp ) _mp = mp_create( 0, MP_EXPAND ); \
+    mp = _mp; }
+
 /*
  * Recursive check for all mpools in chain:
  */
@@ -93,6 +105,12 @@ mpool mp_create( size_t size, mp_flags flags )
     mpool mp;
 
     MS_ALIGN( size, MPOOL_MIN );
+
+    if( !_mp_atexit )
+    {
+        _mp_atexit = 1;
+        atexit( _mp_destroy );
+    }
 
     if( (flags & MP_EXPAND) != MP_EXPAND )
     {
@@ -127,31 +145,53 @@ mpool mp_create( size_t size, mp_flags flags )
 
 void mp_destroy( mpool mp )
 {
-    if( (mp->flags & MP_EXPAND) == MP_EXPAND )
+    if( mp )
     {
-        free( mp->pool );
+        if( (mp->flags & MP_EXPAND) == MP_EXPAND )
+        {
+            free( mp->pool );
+        }
+        if( mp->next ) mp_destroy( mp->next );
+        free( mp );
     }
-    if( mp->next ) mp_destroy( mp->next );
-    free( mp );
 }
 
-void * mp_calloc( const mpool mp, size_t size, size_t n )
+void * mp_calloc( mpool mp, size_t size, size_t n )
 {
-    void * ptr = mp_alloc( mp, size );
+    void * ptr;
+    MP_SET( mp );
+    size *= n;
+    MS_ALIGN( size, MBLK_MIN );
+
+    ptr = mp_alloc( mp, size );
     if( ptr ) memset( ptr, 0, size );
+    return ptr;
+}
+
+char * mp_strdup( mpool mp, const char * src )
+{
+    size_t size = strlen( src ) + 1;
+    char * ptr = mp_alloc( mp, size );
+    if( ptr )
+    {
+        memcpy( ptr, src, size );
+    }
     return ptr;
 }
 
 void mp_walk( const mpool mp, mp_walker walker, void * data )
 {
-    mblk mb = (mblk)mp->pool;
-
-    while( MB_VALID( mb, mp ) )
+    if( mp )
     {
-        walker( mp, mb, data );
-        mb = MB_NEXT( mb );
+        mblk mb = (mblk)mp->pool;
+
+        while( MB_VALID( mb, mp ) )
+        {
+            walker( mp, mb, data );
+            mb = MB_NEXT( mb );
+        }
+        if( mp->next ) mp_walk( mp->next, walker, data );
     }
-    if( mp->next ) mp_walk( mp->next, walker, data );
 }
 
 /*
@@ -163,7 +203,7 @@ static size_t _mp_defragment_pool( const mpool mp )
     mblk next;
     size_t junctions;
 
-    if( (mp->flags & MP_DIRTY) != MP_DIRTY ) return 0;
+    if( !mp || (mp->flags & MP_DIRTY) != MP_DIRTY ) return 0;
 
     junctions = 0;
     mb = (mblk)mp->pool;
@@ -190,8 +230,11 @@ static size_t _mp_defragment_pool( const mpool mp )
 static void * _mp_alloc( const mpool mp, size_t size )
 {
     mblk best = NULL;
-    mblk mb = (mblk)mp->pool;
-    size_t min = mp->size;
+    mblk mb;
+    size_t min;
+
+    mb = (mblk)mp->pool;
+    min = mp->size;
 
     while( MB_VALID( mb, mp ) )
     {
@@ -230,14 +273,17 @@ static void * _mp_alloc( const mpool mp, size_t size )
     return NULL;
 }
 
-void * mp_alloc( const mpool mp, size_t size )
+void * mp_alloc( mpool mp, size_t size )
 {
     void * ptr;
-    mpool current = mp;
+    mpool current;
     size_t largest = 0;
     size_t workhorse = 0;
 
+    MP_SET( mp );
     MS_ALIGN( size, MBLK_MIN );
+    current = mp;
+
     do
     {
         workhorse++;
@@ -302,13 +348,16 @@ int mp_unlock( const mpool mp, void * ptr )
 int mp_locked( const mpool mp, void * ptr )
 {
     return _mp_valid_ptr( ptr, mp ) ?
-    ((((struct _mblk *)ptr) - 1)->flags & MB_LOCKED) : 0;
+            ((((struct _mblk *)ptr) - 1)->flags & MB_LOCKED) : 0;
 }
 #endif
 
-void * mp_realloc( const mpool mp, void * src, size_t size )
+void * mp_realloc( mpool mp, void * src, size_t size )
 {
-    void * dest = NULL;
+    void * dest;
+    MP_SET( mp );
+
+    dest = NULL;
 
     if( _mp_valid_ptr( src, mp ) )
     {
@@ -316,16 +365,16 @@ void * mp_realloc( const mpool mp, void * src, size_t size )
         if( !((((struct _mblk *)src) - 1)->flags & MB_LOCKED) )
         {
 #endif
-        dest = mp_alloc( mp, size );
-        if( dest )
-        {
-            size_t tomove = (((struct _mblk *)src) - 1)->size;
-            if( tomove > size ) tomove = size;
-            memcpy( dest, src, tomove );
-            mp_free( mp, src );
-        }
+            dest = mp_alloc( mp, size );
+            if( dest )
+            {
+                size_t tomove = (((struct _mblk *)src) - 1)->size;
+                if( tomove > size ) tomove = size;
+                memcpy( dest, src, tomove );
+                mp_free( mp, src );
+            }
 #if MP_USE_LOCKING
-    }
+        }
 #endif
     }
     return dest;
@@ -344,4 +393,130 @@ int mp_free( const mpool mp, void * ptr )
     if( (((struct _mblk *)ptr) - 1)->flags & MB_BUSY ) mp->flags |= MP_DIRTY;
     (((struct _mblk *)ptr) - 1)->flags = 0;
     return 1;
+}
+
+/*
+ static size_t _mp_largest_mp( const mpool mp )
+ {
+ size_t largest = 0;
+ mpool current = mp;
+ while( current )
+ {
+ if( current->size > largest ) largest = current->size;
+ current = current->next;
+ }
+ return largest;
+ }
+ */
+
+/*
+ static size_t _mb_info( const mpool mp )
+ {
+ size_t largest = 0;
+ mblk mb = (mblk)mp->pool;
+ while( MB_VALID( mb, mp ) )
+ {
+ if( largest < mb->size ) largest = mb->size;
+ mb = MB_NEXT( mb );
+ }
+ return largest;
+ }
+ */
+
+static char * _mp_format_size( char * bsz, size_t size )
+{
+    if( size < 1024 )
+    {
+        sprintf( bsz, "%uB", size );
+    }
+    else if( size < 1024 * 1024 )
+    {
+        if( size % 1024 )
+        {
+            sprintf( bsz, "%.3fKb", (float)size / 1024 );
+        }
+        else
+        {
+            sprintf( bsz, "%uKb", size / 1024 );
+        }
+    }
+    else
+    {
+        if( size % (1024 * 1024) )
+        {
+            sprintf( bsz, "%.3fMb", (float)size / (1024 * 1024) );
+        }
+        else
+        {
+            sprintf( bsz, "%uMb", size / (1024 * 1024) );
+        }
+    }
+    return bsz;
+}
+
+void mp_dump( mpool mp, FILE * fout, size_t maxw )
+{
+    char * outbuf = malloc( maxw * 2 );
+    mpool current = mp;
+    while( current )
+    {
+        size_t largest = 0;
+        size_t total = 0;
+        float onew;
+        char bsz[32];
+
+        fprintf( fout, "[%u, %s]\n", current->id, _mp_format_size( bsz, current->size ) );
+
+        mblk mb = (mblk)current->pool;
+        while( MB_VALID( mb, current ) )
+        {
+            total += mb->size;
+            if( largest < mb->size ) largest = mb->size;
+            mb = MB_NEXT( mb );
+        }
+        onew = (float)largest / maxw;
+
+        mb = (mblk)current->pool;
+        while( MB_VALID( mb, current ) )
+        {
+            size_t w;
+            size_t i = 0;
+            char c[2] =
+            { '.', 0 };
+            if( mb->flags & MB_BUSY ) c[0] = '*';
+            if( mb->flags & MB_LOCKED ) c[0] = '#';
+
+            sprintf( outbuf, "%10s ", _mp_format_size( bsz, mb->size ) );
+
+            w = ceil( mb->size / onew );
+            if( w > maxw ) w = maxw;
+            strcat( outbuf, "[" );
+            if( w > 2 )
+            {
+                w -= 2;
+                while( i++ < w )
+                {
+                    strcat( outbuf, c );
+                }
+            }
+            strcat( outbuf, "]" );
+/*
+            i = strlen( bsz );
+            if( w > 2 && i < w - 2 )
+            {
+                w = w/2;
+                w -= i/2;
+                w++;
+                memcpy( outbuf + w, bsz, i );
+            }
+*/
+
+            fprintf( fout, "%s\n", outbuf );
+            mb = MB_NEXT( mb );
+        }
+        fprintf( fout, "\n" );
+        //break;
+        current = current->next;
+    }
+    free( outbuf );
 }

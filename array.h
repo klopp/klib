@@ -8,8 +8,7 @@
 #ifndef ARRAY_H_
 #define ARRAY_H_
 
-#include <stdlib.h>
-#include <string.h>
+#include "config.h"
 
 #define ARR_K_EXPAND    1.5
 

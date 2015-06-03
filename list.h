@@ -8,7 +8,7 @@
 #ifndef LIST_H_
 #define LIST_H_
 
-#include <stdlib.h>
+#include "config.h"
 
 #ifdef __cplusplus
 extern "C"

@@ -7,25 +7,26 @@
 
 #include "slist.h"
 
-#if defined(DEBUG)
+static void _sl_destroy( void * data )
+{
+    Free( data );
+}
 
 SList slcreate( void )
 {
-    return lcreate( free );
+    return lcreate( _sl_destroy );
 }
-
-#endif
 
 char * sladd( List list, const char * data )
 {
     if( list && data )
     {
-        char * dup = strdup( data );
+        char * dup = Strdup( data );
         if( dup )
         {
             char * rc = ladd( list, dup );
             if( rc ) return rc;
-            free( dup );
+            Free( dup );
         }
     }
     return NULL;
@@ -35,12 +36,12 @@ char * slpoke( List list, const char * data )
 {
     if( list && data )
     {
-        char * dup = strdup( data );
+        char * dup = Strdup( data );
         if( dup )
         {
             char * rc = lpoke( list, dup );
             if( rc ) return rc;
-            free( dup );
+            Free( dup );
         }
     }
     return NULL;

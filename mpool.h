@@ -14,6 +14,8 @@ extern "C"
 #endif
 
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 #define MBLK_SIGNATURE  0x1515
 #define MBLK_MIN        (sizeof(struct _mblk))
@@ -29,7 +31,7 @@ extern "C"
  */
 #define MP_EXPAND_FOR   1.5
 
-#define MP_USE_LOCKING  0
+#define MP_USE_LOCKING  1
 
 #pragma pack(1)
 
@@ -71,8 +73,8 @@ typedef void (*mp_walker)( const mpool mp, const mblk mb, void * data );
 mpool mp_create( size_t size, mp_flags flags );
 void mp_destroy( mpool mp );
 
-void * mp_alloc( const mpool mp, size_t size );
-void * mp_calloc( const mpool mp, size_t size, size_t n );
+void * mp_alloc( mpool mp, size_t size );
+void * mp_calloc( mpool mp, size_t size, size_t n );
 
 #if MP_USE_LOCKING
 int mp_lock( const mpool mp, void * ptr );
@@ -80,11 +82,14 @@ int mp_locked( const mpool mp, void * ptr );
 int mp_unlock( const mpool mp, void * ptr );
 #endif
 
-void * mp_realloc( const mpool mp, void * src, size_t size );
+char * mp_strdup( mpool mp, const char * src );
+void * mp_realloc( mpool mp, void * src, size_t size );
 
 int mp_free( const mpool mp, void * ptr );
 
 void mp_walk( const mpool mp, mp_walker walker, void * data );
+
+void mp_dump( mpool, FILE *, size_t );
 
 #pragma pack()
 
