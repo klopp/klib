@@ -395,34 +395,6 @@ int mp_free( const mpool mp, void * ptr )
     return 1;
 }
 
-/*
- static size_t _mp_largest_mp( const mpool mp )
- {
- size_t largest = 0;
- mpool current = mp;
- while( current )
- {
- if( current->size > largest ) largest = current->size;
- current = current->next;
- }
- return largest;
- }
- */
-
-/*
- static size_t _mb_info( const mpool mp )
- {
- size_t largest = 0;
- mblk mb = (mblk)mp->pool;
- while( MB_VALID( mb, mp ) )
- {
- if( largest < mb->size ) largest = mb->size;
- mb = MB_NEXT( mb );
- }
- return largest;
- }
- */
-
 static char * _mp_format_size( char * bsz, size_t size )
 {
     if( size < 1024 )
@@ -456,8 +428,10 @@ static char * _mp_format_size( char * bsz, size_t size )
 
 void mp_dump( mpool mp, FILE * fout, size_t maxw )
 {
-    char * outbuf = malloc( maxw * 2 );
+    char * outbuf = malloc( maxw );
     mpool current = mp;
+    if( !outbuf ) return;
+
     while( current )
     {
         size_t largest = 0;
@@ -484,8 +458,9 @@ void mp_dump( mpool mp, FILE * fout, size_t maxw )
             char c[2] =
             { '.', 0 };
             if( mb->flags & MB_BUSY ) c[0] = '*';
+#if MP_USE_LOCKING
             if( mb->flags & MB_LOCKED ) c[0] = '#';
-
+#endif
             sprintf( outbuf, "%10s ", _mp_format_size( bsz, mb->size ) );
 
             w = ceil( mb->size / onew );
@@ -500,22 +475,10 @@ void mp_dump( mpool mp, FILE * fout, size_t maxw )
                 }
             }
             strcat( outbuf, "]" );
-/*
-            i = strlen( bsz );
-            if( w > 2 && i < w - 2 )
-            {
-                w = w/2;
-                w -= i/2;
-                w++;
-                memcpy( outbuf + w, bsz, i );
-            }
-*/
-
             fprintf( fout, "%s\n", outbuf );
             mb = MB_NEXT( mb );
         }
         fprintf( fout, "\n" );
-        //break;
         current = current->next;
     }
     free( outbuf );
