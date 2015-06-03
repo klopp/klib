@@ -428,56 +428,55 @@ static char * _mp_format_size( char * bsz, size_t size )
 
 void mp_dump( mpool mp, FILE * fout, size_t maxw )
 {
-    char * outbuf = malloc( maxw );
-    mpool current = mp;
+    char * outbuf = malloc( maxw + 32 );
+    mpool current;
     if( !outbuf ) return;
 
+    MP_SET( mp );
+
+    current = mp;
     while( current )
     {
         size_t largest = 0;
         size_t total = 0;
+        size_t mb_total = 0;
         float onew;
         char bsz[32];
-
-        fprintf( fout, "[%u, %s]\n", current->id, _mp_format_size( bsz, current->size ) );
 
         mblk mb = (mblk)current->pool;
         while( MB_VALID( mb, current ) )
         {
+            mb_total++;
             total += mb->size;
             if( largest < mb->size ) largest = mb->size;
             mb = MB_NEXT( mb );
         }
         onew = (float)largest / maxw;
 
+        fprintf( fout, "ID: %u, size: %s, ", current->id,
+                _mp_format_size( bsz, current->size ) );
+        fprintf( fout, "blocks: %u, internal: %s\n", mb_total,
+                _mp_format_size( bsz, mb_total * sizeof(struct _mblk) ) );
+
         mb = (mblk)current->pool;
         while( MB_VALID( mb, current ) )
         {
             size_t w;
-            size_t i = 0;
-            char c[2] =
-            { '.', 0 };
-            if( mb->flags & MB_BUSY ) c[0] = '*';
+            char c = '.';
+            if( mb->flags & MB_BUSY ) c = '*';
 #if MP_USE_LOCKING
-            if( mb->flags & MB_LOCKED ) c[0] = '#';
+            if( mb->flags & MB_LOCKED ) c = '#';
 #endif
-            sprintf( outbuf, "%10s ", _mp_format_size( bsz, mb->size ) );
+            memset( outbuf, 0, maxw + 32 );
+            sprintf( outbuf, "%10s [", _mp_format_size( bsz, mb->size ) );
 
             w = ceil( mb->size / onew );
             if( w > maxw ) w = maxw;
-            strcat( outbuf, "[" );
-            if( w > 2 )
-            {
-                w -= 2;
-                while( i++ < w )
-                {
-                    strcat( outbuf, c );
-                }
-            }
-            strcat( outbuf, "]" );
-            fprintf( fout, "%s\n", outbuf );
+            memset( outbuf + strlen( outbuf ), c, w );
+            fprintf( fout, "%s]\n", outbuf );
             mb = MB_NEXT( mb );
         }
+
         fprintf( fout, "\n" );
         current = current->next;
     }
