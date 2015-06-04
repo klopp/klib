@@ -52,12 +52,16 @@
 # define Calloc( size, n )      mp_calloc( NULL, (size), (n) )
 # define Realloc( src, n )      mp_realloc( NULL, (src), (n) )
 # define Free( ptr )            mp_free( NULL, (ptr) )
+# define Munlock( ptr )         mp_unlock( NULL, (ptr) )
+# define Mlock( ptr )           mp_lock( NULL, (ptr) )
 #else
 # define Malloc( size )         malloc( (size) )
 # define Strdup( s )            strdup( (s) )
 # define Calloc( size, n )      calloc( (size), (n) )
 # define Realloc( src, n )      realloc( (src), (n) )
 # define Free( ptr )            free( (ptr) )
+# define Munlock( ptr )         NO_Munlock_implementation
+# define Mlock( ptr )           NO_Mlock_implementation
 #endif
 
 

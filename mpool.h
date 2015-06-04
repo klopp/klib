@@ -54,6 +54,7 @@ typedef enum _mp_flags
 {
     MP_DIRTY = 0x01,        // internal defrag flag
     MP_EXPAND = 0x02,       // expand mpool memory if needed
+    MP_SLOW = 0x04,         // ???
     MP_DEFAULT = (0x00)
 } mp_flags;
 
@@ -77,17 +78,17 @@ void * mp_alloc( mpool mp, size_t size );
 void * mp_calloc( mpool mp, size_t size, size_t n );
 
 #if MP_USE_LOCKING
-int mp_lock( const mpool mp, void * ptr );
-int mp_locked( const mpool mp, void * ptr );
-int mp_unlock( const mpool mp, void * ptr );
+int mp_lock( mpool mp, void * ptr );
+int mp_locked( mpool mp, void * ptr );
+int mp_unlock( mpool mp, void * ptr );
 #endif
 
 char * mp_strdup( mpool mp, const char * src );
 void * mp_realloc( mpool mp, void * src, size_t size );
 
-int mp_free( const mpool mp, void * ptr );
+int mp_free( mpool mp, void * ptr );
 
-void mp_walk( const mpool mp, mp_walker walker, void * data );
+void mp_walk( mpool mp, mp_walker walker, void * data );
 
 void mp_dump( mpool, FILE *, size_t );
 

@@ -179,8 +179,9 @@ char * mp_strdup( mpool mp, const char * src )
     return ptr;
 }
 
-void mp_walk( const mpool mp, mp_walker walker, void * data )
+void mp_walk( mpool mp, mp_walker walker, void * data )
 {
+    MP_SET( mp );
     if( mp )
     {
         mblk mb = (mblk)mp->pool;
@@ -319,8 +320,9 @@ void * mp_alloc( mpool mp, size_t size )
 }
 
 #if MP_USE_LOCKING
-int mp_lock( const mpool mp, void * ptr )
+int mp_lock( mpool mp, void * ptr )
 {
+    MP_SET( mp );
     if( _mp_valid_ptr( ptr, mp ) )
     {
         if( (((struct _mblk *)ptr) - 1)->flags & MB_BUSY )
@@ -332,8 +334,9 @@ int mp_lock( const mpool mp, void * ptr )
     return 0;
 }
 
-int mp_unlock( const mpool mp, void * ptr )
+int mp_unlock( mpool mp, void * ptr )
 {
+    MP_SET( mp );
     if( _mp_valid_ptr( ptr, mp ) )
     {
         if( (((struct _mblk *)ptr) - 1)->flags & MB_LOCKED )
@@ -345,8 +348,9 @@ int mp_unlock( const mpool mp, void * ptr )
     return 0;
 }
 
-int mp_locked( const mpool mp, void * ptr )
+int mp_locked( mpool mp, void * ptr )
 {
+    MP_SET( mp );
     return _mp_valid_ptr( ptr, mp ) ?
             ((((struct _mblk *)ptr) - 1)->flags & MB_LOCKED) : 0;
 }
@@ -380,8 +384,10 @@ void * mp_realloc( mpool mp, void * src, size_t size )
     return dest;
 }
 
-int mp_free( const mpool mp, void * ptr )
+int mp_free( mpool mp, void * ptr )
 {
+    MP_SET( mp );
+
     if( !ptr || !mp ) return 0;
 
     if( !MP_VALID( ptr, mp ) ) return mp_free( mp->next, ptr );
@@ -395,8 +401,10 @@ int mp_free( const mpool mp, void * ptr )
     return 1;
 }
 
-static char * _mp_format_size( char * bsz, unsigned long size )
+static char * _mp_format_size( unsigned long size )
 {
+    static char bsz[32];
+
     if( size < 1024 )
     {
         sprintf( bsz, "%luB", size );
@@ -449,7 +457,6 @@ void mp_dump( mpool mp, FILE * fout, size_t maxw )
         size_t total = 0;
         size_t mb_total = 0;
         size_t onew;
-        char bsz[32];
 
         mp_pools++;
         mp_total += current->size;
@@ -467,9 +474,9 @@ void mp_dump( mpool mp, FILE * fout, size_t maxw )
         onew = largest / maxw;
 
         fprintf( fout, "ID: %u, size: %s, ", current->id,
-                _mp_format_size( bsz, current->size ) );
+                _mp_format_size( current->size ) );
         fprintf( fout, "blocks: %u, internal: %s\n", mb_total,
-                _mp_format_size( bsz, mb_total * sizeof(struct _mblk) ) );
+                _mp_format_size( mb_total * sizeof(struct _mblk) ) );
 
         mb = (mblk)current->pool;
         while( MB_VALID( mb, current ) )
@@ -487,7 +494,7 @@ void mp_dump( mpool mp, FILE * fout, size_t maxw )
                 if( mp_largest_free < mb->size ) mp_largest_free = mb->size;
             }
             memset( outbuf, 0, maxw + 32 );
-            sprintf( outbuf, "%10s [", _mp_format_size( bsz, mb->size ) );
+            sprintf( outbuf, "%10s [", _mp_format_size( mb->size ) );
 
             w = mb->size / onew;
 
@@ -502,18 +509,21 @@ void mp_dump( mpool mp, FILE * fout, size_t maxw )
         current = current->next;
     }
 
-    fprintf( fout, "---\nPools: %u, ", mp_pools );
-    fprintf( fout, "total: %s, ", _mp_format_size( outbuf, mp_total ) );
-    fprintf( fout, "largest pool: %s, ",
-            _mp_format_size( outbuf, mp_largest ) );
-    fprintf( fout, "total free: %s\n",
-            _mp_format_size( outbuf, mp_total_free ) );
+    fprintf( fout, "%-16s: [.] - free, [*] - busy, [#] - locked\n"
+            "%-16s: %u\n", "Legend", "Total pools", mp_pools );
 
-    fprintf( fout, "Total blocks: %lu, ", mp_blocks );
-    fprintf( fout, "largest free block: %s, ",
-            _mp_format_size( outbuf, mp_largest_free ) );
-    fprintf( fout, "internal: %s\n",
-            _mp_format_size( outbuf,
+    fprintf( fout, "%-16s: %s\n", "Largest pool",
+            _mp_format_size( mp_largest ) );
+    fprintf( fout, "%-16s: %s\n", "Total allocated",
+            _mp_format_size( mp_total ) );
+    fprintf( fout, "%-16s: %s\n", "Total free",
+            _mp_format_size( mp_total_free ) );
+
+    fprintf( fout, "%-16s: %lu\n", "Total blocks", mp_blocks );
+    fprintf( fout, "%-16s: %s\n", "Largest free",
+            _mp_format_size( mp_largest_free ) );
+    fprintf( fout, "%-16s: %s\n", "Internal memory",
+            _mp_format_size(
                     (mp_blocks * sizeof(struct _mblk))
                             + (mp_pools * sizeof(struct _mpool)) ) );
     free( outbuf );
