@@ -214,6 +214,7 @@ static size_t _log_format_string( char ** data, const char * fmt, va_list ap )
 static char * _log_format_filename( const char * fmt, va_list ap )
 {
     char * file = NULL;
+    FILE * flog;
     size_t size = _log_format_string( NULL, fmt, ap );
     file = Malloc( size + 1 );
     if( file )
@@ -226,6 +227,13 @@ static char * _log_format_filename( const char * fmt, va_list ap )
             Free( file );
             file = fullpath;
         }
+        flog = openpath( file, "a", S_IRWXU );
+        if( !flog )
+        {
+            Free( file );
+            return NULL;
+        }
+        fclose( flog );
     }
     return file;
 }
@@ -357,7 +365,7 @@ static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
     }
     if( *log->file )
     {
-        FILE * flog = openpath( log->file, "a", S_IRWXU );
+        FILE * flog = fopen( log->file, "a" );
         if( !flog ) return 0;
         _log( flog, buf, fmt, ap );
         fclose( flog );

@@ -51,19 +51,24 @@ typedef struct _Log
 
 /*
  * filename may be format string:
+ *
  * %S - any C-style string
  * %U - unsigned int (%NU - use N zero for padding)
  * %P - process pid (%Np - use N zero for padding)
+ *
  * %Y - current year (4-digit)
  * %M - current month (2-digit)
  * %D - current day (2-digit)
+ *
  * %h - current hour (2-digit)
  * %m - current minute (2-digit)
  * %s - current second (2-digit)
+ *
  * %a - alias for %Y.%M.%D
  * %A - alias for %Y-%M-%D
  * %b - alias for %h.%m.%s
  * %B - alias for %h-%m-%s
+ *
  * %z - alias for %Y.%M.%D-%h.%m.%s
  * %Z - alias for %Y-%M-%D-%h-%m-%s
  */

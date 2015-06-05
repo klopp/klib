@@ -68,8 +68,7 @@ FILE * openpath( const char * file, const char * mode, mode_t dirmode )
     char * p;
 
     strncpy( copypath, file, sizeof(copypath) - 1 );
-    //    p = strrchr( copypath, '/' );
-    p = strbrbrk( copypath, "/\\" );
+    p = strprbrk( copypath, "/\\" );
     if( !p )
     {
         p = copypath;
