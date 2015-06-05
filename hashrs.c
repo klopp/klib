@@ -10,11 +10,11 @@
 #define A   63689
 #define B   378551
 
+static unsigned a = 0;
+static unsigned hash = 0;
+
 unsigned hash_rs( unsigned startval, const void * buf, size_t size )
 {
-    static unsigned a = 0;
-    unsigned hash;
-
     if( !startval ) a = A;
     for( hash = startval; size; size--, (unsigned char *)buf++ )
     {
@@ -26,6 +26,12 @@ unsigned hash_rs( unsigned startval, const void * buf, size_t size )
 
 unsigned shash_rs( unsigned startval, const char * buf )
 {
-    return hash_rs( startval, buf, strlen(buf) );
+    if( !startval ) a = A;
+    for( hash = startval; *buf; buf++ )
+    {
+        hash = hash * a + *((unsigned char *)buf);
+        a *= B;
+    }
+    return hash;
 }
 

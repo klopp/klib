@@ -7,10 +7,10 @@
 
 #include "hash.h"
 
+static unsigned hash = 0;
+
 unsigned hash_faq6( unsigned startval, const void * buf, size_t size )
 {
-    unsigned hash;
-
     for( hash = startval; size; (unsigned char *)buf++, size-- )
     {
         hash += *((unsigned char *)buf);
@@ -25,8 +25,6 @@ unsigned hash_faq6( unsigned startval, const void * buf, size_t size )
 
 unsigned shash_faq6( unsigned startval, const char * buf )
 {
-    unsigned hash;
-
     for( hash = startval; *buf; buf++ )
     {
         hash += *((unsigned char *)buf);
