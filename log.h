@@ -52,7 +52,8 @@ typedef struct _Log
 /*
  * filename may be format string:
  * %S - any C-style string
- * %p - process pid (%Np - use N zero for padding)
+ * %U - unsigned int (%NU - use N zero for padding)
+ * %P - process pid (%Np - use N zero for padding)
  * %Y - current year (4-digit)
  * %M - current month (2-digit)
  * %D - current day (2-digit)

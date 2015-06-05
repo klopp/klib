@@ -107,8 +107,16 @@ static size_t _log_format_string( char ** data, const char * fmt, va_list ap )
 
         switch( *fmt )
         {
-            case 'p':
+            case 'P':
                 sprintf( buf, "%0*u", pad, getpid() );
+                goto pcopy;
+
+            case 'U':
+                do
+                {
+                    unsigned int u = va_arg( ap, uint );
+                    sprintf( buf, "%0*u", pad, u );
+                } while( 0 );
                 goto pcopy;
 
             case 'S':
