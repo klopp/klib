@@ -9,7 +9,7 @@
 #define CONFIG_H_
 
 #ifndef __WINDOWS__
-# if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
+# ifndef __unix__
 #  define __WINDOWS__
 # endif
 #endif
@@ -23,6 +23,7 @@
 #endif
 
 #if defined(_MSC_VER)
+# include <windows.h>
 # define pid_t          int
 # define strcasecmp     _stricmp
 # define snprintf       _snprintf
@@ -64,5 +65,12 @@
 # define Mlock( ptr )           NO_Mlock_implementation
 #endif
 
+typedef char *              pchar;
+typedef int *               pint;
+typedef long *              plong;
+typedef unsigned char *     puchar;
+typedef unsigned int *      puint;
+typedef unsigned long *     pulong;
+typedef size_t *            psizet;
 
 #endif /* CONFIG_H_ */
