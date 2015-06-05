@@ -22,7 +22,7 @@ extern "C"
 #if defined(DEBUG)
 # define MPOOL_MIN      32
 #else
-# define MPOOL_MIN      1024
+# define MPOOL_MIN      (1024*16)
 #endif
 
 /*
