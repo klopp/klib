@@ -6,7 +6,9 @@
  */
 
 #include "log.h"
+#include "mkpath.h"
 #include <ctype.h>
+#include <sys/stat.h>
 
 static const char * _log_format_level( Log log, LogFlags level )
 {
@@ -198,7 +200,6 @@ static size_t _log_format_string( char ** data, const char * fmt, va_list ap )
     {
         *ptr = 0;
     }
-//va_end( ap );
     return size;
 }
 
@@ -209,7 +210,14 @@ static char * _log_format_filename( const char * fmt, va_list ap )
     file = Malloc( size + 1 );
     if( file )
     {
+        char * fullpath;
         _log_format_string( &file, fmt, ap );
+        fullpath = expand_home( file );
+        if( fullpath )
+        {
+            Free( file );
+            file = fullpath;
+        }
     }
     return file;
 }
@@ -341,7 +349,7 @@ static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
     }
     if( *log->file )
     {
-        FILE * flog = fopen( log->file, "a" );
+        FILE * flog = openpath( log->file, "a", S_IRWXU );
         if( !flog ) return 0;
         _log( flog, buf, fmt, ap );
         fclose( flog );

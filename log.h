@@ -33,23 +33,40 @@ typedef enum _LogFlags
     LOG_TIME = LOG_DATE << 1,
     LOG_DATETIME = (LOG_TIME | LOG_DATE),
 
-    LOG_DEFAULTS = (LOG_FATAL | LOG_ERROR | LOG_WARN | LOG_DATETIME
+    LOG_DEFAULTS = (LOG_FATAL | LOG_ERROR | LOG_WARN | LOG_INFO | LOG_DATETIME
             | LOG_LOGLEVEL)
 } LogFlags;
 
 typedef struct _Log
 {
     LogFlags flags;
-    char filename[PATH_MAX + 1];
     char format_fatal;
     char format_err;
     char format_warn;
     char format_info;
     char format_dbg;
     char format_datetime;
+    char * file;
 }*Log;
 
-Log log_create( const char * filename, LogFlags flags );
+/*
+ * filename may be format string:
+ * %S - any C-style string
+ * %p - process pid (%Np - use N zero for padding)
+ * %Y - current year (4-digit)
+ * %M - current month (2-digit)
+ * %D - current day (2-digit)
+ * %h - current hour (2-digit)
+ * %m - current minute (2-digit)
+ * %s - current second (2-digit)
+ * %a - alias for %Y.%M.%D
+ * %A - alias for %Y-%M-%D
+ * %b - alias for %h.%m.%s
+ * %B - alias for %h-%m-%s
+ * %z - alias for %Y.%M.%D-%h.%m.%s
+ * %Z - alias for %Y-%M-%D-%h-%m-%s
+ */
+Log log_create( LogFlags flags, const char * filename, ...  );
 void log_destroy( Log log );
 
 int plog( Log, LogFlags level, const char * fmt, ... );
