@@ -7,6 +7,11 @@
 
 #include "log.h"
 #include "mkpath.h"
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include <ctype.h>
 #include <sys/stat.h>
 
