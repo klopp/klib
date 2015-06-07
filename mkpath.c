@@ -10,14 +10,18 @@
 #include <sys/stat.h>
 #include "../stringlib/stringlib.h"
 
-static int _mkdir( const char *path, mode_t mode )
+static int _mkpath( const char *path, mode_t mode )
 {
     struct stat st;
     int status = 0;
 
     if( stat( path, &st ) != 0 )
     {
+#if defined(__WINDOWS__)
+        if( mkdir( path ) != 0 ) status = -1;
+#else
         if( mkdir( path, mode ) != 0 && errno != EEXIST ) status = -1;
+#endif
     }
     else if( !S_ISDIR( st.st_mode ) )
     {
@@ -40,7 +44,16 @@ int mkpath( const char *path, mode_t mode )
     sp = strtok( copypath, "\\/" );
     while( status == 0 && sp )
     {
-        status = _mkdir( copypath, mode );
+#if defined(__WINDOWS__)
+        if( copypath[1] == ':' && !copypath[2] )
+        {}
+        else
+        {
+#endif
+        status = _mkpath( copypath, mode );
+#if defined(__WINDOWS__)
+    }
+#endif
         *(sp + strlen( sp )) = '/';
         sp = strtok( NULL, "\\/" );
     }
@@ -58,7 +71,7 @@ int mkpath( const char *path, mode_t mode )
      }
 
      */
-    if( status == 0 ) status = _mkdir( path, mode );
+    if( status == 0 ) status = _mkpath( path, mode );
     return status == 0;
 }
 
