@@ -103,8 +103,10 @@ typedef List Queue;
 #define qclear(q)           lclear((q))
 #define qwalk(q)            lwalk((q))
 #define qput(q,data)        ladd( (q), (data) )
+#define enqueue(q,data)     qput( (q), (data) )
 #define qpoke(q,data)       lpoke( (q), (data) )
 #define qpeek(q)            lhead((q))
+#define dequeue(q)          qpeek((q))
 #define qget(q)             lgethead((q))
 
 /*
