@@ -34,11 +34,8 @@ void lclear( List list )
 
 void ldestroy( List list )
 {
-    if( list )
-    {
-        lclear( list );
-        Free( list );
-    }
+    lclear( list );
+    Free( list );
 }
 
 void * ladd( List list, void * data )
@@ -167,18 +164,3 @@ void * lhead( List list )
     return (list && list->head) ? list->head->data : NULL;
 }
 
-/*
-void ldelnode( List list, LNode node )
-{
-    if( node->next )
-    {
-        node->next->prev = node->prev;
-    }
-    if( node->prev )
-    {
-        node->prev->next = node->next;
-    }
-    if( node->data && list->destructor) list->destructor( node->data );
-    free( node);
-}
-*/
