@@ -14,6 +14,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 
 static const char * _log_format_level( Log log, LogFlags level )
 {
@@ -57,6 +58,9 @@ static void _log_datetime( char ** dateptr, char ** timeptr )
     struct tm *lt;
     time_t ttime;
 
+    struct timeval tv;
+    gettimeofday( &tv, NULL );
+
     ttime = time( &ttime );
     lt = localtime( &ttime );
     if( dateptr )
@@ -75,7 +79,7 @@ static void _log_datetime( char ** dateptr, char ** timeptr )
 static size_t _log_format_string( char ** data, const char * fmt, va_list ap )
 {
     size_t size = 0;
-    size_t pad = 0;
+    int pad = 0;
     size_t workhorse = 0;
     char buf[32];
     char * ptr = data ? *data : NULL;
@@ -216,33 +220,6 @@ static size_t _log_format_string( char ** data, const char * fmt, va_list ap )
     return size;
 }
 
-static char * _log_format_filename( const char * fmt, va_list ap )
-{
-    char * file = NULL;
-    FILE * flog;
-    size_t size = _log_format_string( NULL, fmt, ap );
-    file = Malloc( size + 1 );
-    if( file )
-    {
-        char * fullpath;
-        _log_format_string( &file, fmt, ap );
-        fullpath = expand_home( file );
-        if( fullpath )
-        {
-            Free( file );
-            file = fullpath;
-        }
-        flog = openpath( file, "a", S_IRWXU );
-        if( !flog )
-        {
-            Free( file );
-            return NULL;
-        }
-        fclose( flog );
-    }
-    return file;
-}
-
 Log log_create( LogFlags flags, const char * filename, ... )
 {
     Log log = Calloc( sizeof(struct _Log), 1 );
@@ -251,9 +228,26 @@ Log log_create( LogFlags flags, const char * filename, ... )
     if( filename )
     {
         va_list ap;
+        size_t size;
+
         va_start( ap, filename );
-        log->file = _log_format_filename( filename, ap );
+        size = _log_format_string( NULL, filename, ap );
         va_end( ap );
+
+        log->file = Malloc( size + 1 );
+        if( log->file )
+        {
+            char * fullpath;
+            va_start( ap, filename );
+            _log_format_string( &log->file, filename, ap );
+            va_end( ap );
+            fullpath = expand_home( log->file );
+            if( fullpath )
+            {
+                Free( log->file );
+                log->file = fullpath;
+            }
+        }
         if( !log->file )
         {
             Free( log );
