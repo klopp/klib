@@ -52,30 +52,27 @@ void log_destroy( Log log )
     Free( log );
 }
 
-static void _log_datetime( char ** dateptr, char ** timeptr )
+static void _log_datetime( char * dateptr, char * timeptr, char * mseconds )
 {
-    static char tbuf[16];
-    static char dbuf[16];
     struct tm *lt;
-    time_t ttime;
+    struct timeval tv;
 
-    /*
-     struct timeval tv;
-     gettimeofday( &tv, NULL );
-     */
+    gettimeofday( &tv, NULL );
+    lt = localtime( &tv.tv_sec );
 
-    ttime = time( &ttime );
-    lt = localtime( &ttime );
     if( dateptr )
     {
-        sprintf( dbuf, "%u.%02u.%02u", lt->tm_year + 1900, lt->tm_mon + 1,
+        sprintf( dateptr, "%u.%02u.%02u", lt->tm_year + 1900, lt->tm_mon + 1,
                 lt->tm_mday );
-        *dateptr = dbuf;
     }
     if( timeptr )
     {
-        sprintf( tbuf, "%02u:%02u:%02u", lt->tm_hour, lt->tm_min, lt->tm_sec );
-        *timeptr = tbuf;
+        sprintf( timeptr, "%02u:%02u:%02u", lt->tm_hour, lt->tm_min,
+                lt->tm_sec );
+    }
+    if( mseconds )
+    {
+        sprintf( mseconds, "%6lu", tv.tv_usec );
     }
 }
 
@@ -278,19 +275,19 @@ Log log_create( LogFlags flags, const char * filename, ... )
     return log;
 }
 
- static void _log( FILE * file, const char * buf, const char * fmt, va_list ap )
- {
- fprintf( file, "%s", buf );
- vfprintf( file, fmt, ap );
- fprintf( file, "\n" );
- }
+static void _log( FILE * file, const char * buf, const char * fmt, va_list ap )
+{
+    fprintf( file, "%s", buf );
+    vfprintf( file, fmt, ap );
+    fprintf( file, "\n" );
+}
 
 /*
-#define _log( file, prefix, data ) \
+ #define _log( file, prefix, data ) \
         fprintf( (file), "%s", (prefix) ); \
         fprintf( (file), "%s", data ); \
         fprintf( (file), "\n" )
-*/
+ */
 
 static const char * _log_datetime_separator( char separator )
 {
@@ -302,32 +299,34 @@ static const char * _log_datetime_separator( char separator )
     return dtsep;
 }
 
-const char * log_datetime( char separator )
-{
-    static char datetime[32];
-    char * timeptr;
-    char * dateptr;
+/*
+ const char * log_datetime( char separator )
+ {
+ static char datetime[32];
+ char * timeptr;
+ char * dateptr;
 
-    _log_datetime( &dateptr, &timeptr );
-    strcpy( datetime, dateptr );
-    strcat( datetime, _log_datetime_separator( separator ) );
-    strcat( datetime, timeptr );
-    return datetime;
-}
+ _log_datetime( &dateptr, &timeptr );
+ strcpy( datetime, dateptr );
+ strcat( datetime, _log_datetime_separator( separator ) );
+ strcat( datetime, timeptr );
+ return datetime;
+ }
 
-const char * log_date( void )
-{
-    char * tbuf;
-    _log_datetime( NULL, &tbuf );
-    return tbuf;
-}
+ const char * log_date( void )
+ {
+ char * tbuf;
+ _log_datetime( NULL, &tbuf );
+ return tbuf;
+ }
 
-const char * log_time( void )
-{
-    char * dbuf;
-    _log_datetime( &dbuf, NULL );
-    return dbuf;
-}
+ const char * log_time( void )
+ {
+ char * dbuf;
+ _log_datetime( &dbuf, NULL );
+ return dbuf;
+ }
+ */
 
 static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
 {
@@ -351,30 +350,34 @@ static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
         strcat( buf, _log_format_level( log, level ) );
     }
 
-    if( log->flags & (LOG_DATE | LOG_TIME) )
+    if( log->flags & (LOG_DATE | LOG_TIME | LOG_MILLISEC) )
     {
-        char * dateptr;
-        char * timeptr;
-        _log_datetime( &dateptr, &timeptr );
-        if( (log->flags & (LOG_DATE | LOG_TIME)) == (LOG_DATE | LOG_TIME) )
-        {
-            strcat( buf, dateptr );
-            strcat( buf, _log_datetime_separator( log->format_datetime ) );
-            strcat( buf, timeptr );
-            strcat( buf, " " );
-        }
-        else
+        char dateptr[16];
+        char timeptr[16];
+        char mseconds[16];
+        _log_datetime( dateptr, timeptr, mseconds );
+        if( log->flags & (LOG_DATE | LOG_TIME | LOG_MILLISEC) )
         {
             if( log->flags & LOG_DATE )
             {
                 strcat( buf, dateptr );
-                strcat( buf, " " );
+                if( log->flags & (LOG_TIME | LOG_MILLISEC) )
+                {
+                    strcat( buf,
+                            _log_datetime_separator( log->format_datetime ) );
+
+                }
             }
-            if( log->flags & LOG_TIME )
+            if( log->flags & (LOG_TIME | LOG_MILLISEC) )
             {
                 strcat( buf, timeptr );
-                strcat( buf, " " );
             }
+            if( log->flags & LOG_MILLISEC )
+            {
+                strcat( buf, "." );
+                strcat( buf, mseconds );
+            }
+            strcat( buf, " " );
         }
     }
 

@@ -26,10 +26,14 @@ typedef enum _LogFlags
     LOG_LOGPID = LOG_LOGLEVEL << 1,
     LOG_DATE = LOG_LOGPID << 1,
     LOG_TIME = LOG_DATE << 1,
+    LOG_MILLISEC = LOG_TIME << 1,
     LOG_DATETIME = (LOG_TIME | LOG_DATE),
+    LOG_TIME_PREC = (LOG_TIME | LOG_DATE | LOG_MILLISEC),
 
     LOG_DEFAULTS = (LOG_ALL_LVL | LOG_DATETIME | LOG_LOGLEVEL)
 } LogFlags;
+
+#define LOG_BUF_SIZE    (1024*16)
 
 typedef struct _Log
 {
@@ -41,6 +45,7 @@ typedef struct _Log
     char format_dbg;
     char format_datetime;
     char * file;
+    char * buf;
 }*Log;
 
 /*
@@ -76,8 +81,10 @@ int wlog( Log, const char * fmt, ... );
 int ilog( Log, const char * fmt, ... );
 int dlog( Log, const char * fmt, ... );
 
+/*
 const char * log_datetime( char separator );
 const char * log_date( void );
 const char * log_time( void );
+*/
 
 #endif /* LOG_H_ */
