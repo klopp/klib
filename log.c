@@ -52,30 +52,6 @@ void log_destroy( Log log )
     Free( log );
 }
 
-static void _log_datetime( char * dateptr, char * timeptr, char * mseconds )
-{
-    struct tm *lt;
-    struct timeval tv;
-
-    gettimeofday( &tv, NULL );
-    lt = localtime( &tv.tv_sec );
-
-    if( dateptr )
-    {
-        sprintf( dateptr, "%u.%02u.%02u", lt->tm_year + 1900, lt->tm_mon + 1,
-                lt->tm_mday );
-    }
-    if( timeptr )
-    {
-        sprintf( timeptr, "%02u:%02u:%02u", lt->tm_hour, lt->tm_min,
-                lt->tm_sec );
-    }
-    if( mseconds )
-    {
-        sprintf( mseconds, "%6lu", tv.tv_usec );
-    }
-}
-
 static size_t _log_format_string( char ** data, const char * fmt, va_list ap )
 {
     size_t size = 0;
@@ -355,7 +331,19 @@ static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
         char dateptr[16];
         char timeptr[16];
         char mseconds[16];
-        _log_datetime( dateptr, timeptr, mseconds );
+
+        struct tm *lt;
+        struct timeval tv;
+
+        gettimeofday( &tv, NULL );
+        lt = localtime( &tv.tv_sec );
+
+        sprintf( dateptr, "%u.%02u.%02u", lt->tm_year + 1900, lt->tm_mon + 1,
+                lt->tm_mday );
+        sprintf( timeptr, "%02u:%02u:%02u", lt->tm_hour, lt->tm_min,
+                lt->tm_sec );
+        sprintf( mseconds, "%-6lu", tv.tv_usec );
+
         if( log->flags & (LOG_DATE | LOG_TIME | LOG_MILLISEC) )
         {
             if( log->flags & LOG_DATE )
