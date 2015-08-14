@@ -15,7 +15,6 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include "../stringlib/stringlib.h"
 
 static const char * _log_format_level( Log log, LogFlags level )
 {
@@ -49,6 +48,7 @@ static const char * _log_format_level( Log log, LogFlags level )
 void log_destroy( Log log )
 {
     Free( log->file );
+    Free( log->buf );
     Free( log );
 }
 
@@ -59,10 +59,10 @@ static void _log_datetime( char ** dateptr, char ** timeptr )
     struct tm *lt;
     time_t ttime;
 
-/*
-    struct timeval tv;
-    gettimeofday( &tv, NULL );
-*/
+    /*
+     struct timeval tv;
+     gettimeofday( &tv, NULL );
+     */
 
     ttime = time( &ttime );
     lt = localtime( &ttime );
@@ -259,6 +259,14 @@ Log log_create( LogFlags flags, const char * filename, ... )
         }
     }
 
+    log->buf = Malloc( LOG_BUF_SIZE );
+    if( !log->buf )
+    {
+        Free( log->file );
+        Free( log );
+        return NULL;
+    }
+
     log->flags = flags;
     log->format_fatal = '!';
     log->format_err = '*';
@@ -270,19 +278,19 @@ Log log_create( LogFlags flags, const char * filename, ... )
     return log;
 }
 
-/*
  static void _log( FILE * file, const char * buf, const char * fmt, va_list ap )
  {
  fprintf( file, "%s", buf );
  vfprintf( file, fmt, ap );
  fprintf( file, "\n" );
  }
- */
 
+/*
 #define _log( file, prefix, data ) \
         fprintf( (file), "%s", (prefix) ); \
         fprintf( (file), "%s", data ); \
         fprintf( (file), "\n" )
+*/
 
 static const char * _log_datetime_separator( char separator )
 {
@@ -321,11 +329,13 @@ const char * log_time( void )
     return dbuf;
 }
 
-
 static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
 {
     char buf[128];
-    char * msg = NULL;
+    va_list cp;
+
+//    char * msg = _ssprintf( NULL, fmt, ap );
+//    if( !msg ) return 0;
 
     if( (level & log->flags) != level ) return 0;
 
@@ -368,33 +378,27 @@ static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
         }
     }
 
-    msg = _ssprintf( NULL, fmt, ap );
+    if( log->flags & LOG_STDOUT )
+    {
+        va_copy( cp, ap );
+        _log( stdout, buf, fmt, ap );
+        va_copy( ap, cp );
+    }
+    if( log->flags & LOG_STDERR )
+    {
+        va_copy( cp, ap );
+        _log( stderr, buf, fmt, ap );
+        va_copy( ap, cp );
+    }
+    if( *log->file )
+    {
+        FILE * flog = fopen( log->file, "a" );
+        if( !flog ) return 0;
+        _log( flog, buf, fmt, ap );
+        fclose( flog );
+    }
 
-    if( msg )
-    {
-        if( log->flags & LOG_STDOUT )
-        {
-            _log( stdout, buf, msg );
-        }
-        if( log->flags & LOG_STDERR )
-        {
-            _log( stderr, buf, msg );
-        }
-        if( *log->file )
-        {
-            FILE * flog = fopen( log->file, "a" );
-            if( !flog ) return 0;
-            _log( flog, buf, msg );
-            fclose( flog );
-        }
-        Free( msg );
-    }
-    else
-    {
-        fprintf( stderr, "%s", buf );
-        vfprintf( stderr, fmt, ap );
-        fprintf( stderr, "\n" );
-    }
+//    Free( msg );
 
     return 1;
 }
