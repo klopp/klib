@@ -48,7 +48,6 @@ static const char * _log_format_level( Log log, LogFlags level )
 void log_destroy( Log log )
 {
     Free( log->file );
-    Free( log->buf );
     Free( log );
 }
 
@@ -230,14 +229,6 @@ Log log_create( LogFlags flags, const char * filename, ... )
             Free( log );
             return NULL;
         }
-    }
-
-    log->buf = Malloc( LOG_BUF_SIZE );
-    if( !log->buf )
-    {
-        Free( log->file );
-        Free( log );
-        return NULL;
     }
 
     log->flags = flags;
