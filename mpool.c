@@ -474,9 +474,9 @@ void mp_dump( mpool mp, FILE * fout, size_t maxw )
         }
         onew = largest / maxw;
 
-        fprintf( fout, "ID: %u, size: %s, ", current->id,
+        fprintf( fout, "ID: %zu, size: %s, ", current->id,
                 _mp_format_size( current->size ) );
-        fprintf( fout, "blocks: %u, internal: %s\n", mb_total,
+        fprintf( fout, "blocks: %zu, internal: %s\n", mb_total,
                 _mp_format_size( mb_total * sizeof(struct _mblk) ) );
 
         mb = (mblk)current->pool;
@@ -511,7 +511,7 @@ void mp_dump( mpool mp, FILE * fout, size_t maxw )
     }
 
     fprintf( fout, "%-16s: [.] - free, [*] - busy, [#] - locked\n"
-            "%-16s: %u\n", "Legend", "Total pools", mp_pools );
+            "%-16s: %zu\n", "Legend", "Total pools", mp_pools );
 
     fprintf( fout, "%-16s: %s\n", "Largest pool",
             _mp_format_size( mp_largest ) );
