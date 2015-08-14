@@ -59,8 +59,10 @@ static void _log_datetime( char ** dateptr, char ** timeptr )
     struct tm *lt;
     time_t ttime;
 
+/*
     struct timeval tv;
     gettimeofday( &tv, NULL );
+*/
 
     ttime = time( &ttime );
     lt = localtime( &ttime );
