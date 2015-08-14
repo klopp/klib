@@ -15,6 +15,7 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include "../stringlib/stringlib.h"
 
 static const char * _log_format_level( Log log, LogFlags level )
 {
@@ -228,6 +229,7 @@ Log log_create( LogFlags flags, const char * filename, ... )
     if( filename )
     {
         va_list ap;
+        va_list op;
         size_t size;
 
         va_start( ap, filename );
@@ -238,9 +240,9 @@ Log log_create( LogFlags flags, const char * filename, ... )
         if( log->file )
         {
             char * fullpath;
-            va_start( ap, filename );
-            _log_format_string( &log->file, filename, ap );
-            va_end( ap );
+            va_start( op, filename );
+            _log_format_string( &log->file, filename, op );
+            va_end( op );
             fullpath = expand_home( log->file );
             if( fullpath )
             {
@@ -266,12 +268,19 @@ Log log_create( LogFlags flags, const char * filename, ... )
     return log;
 }
 
-static void _log( FILE * file, const char * buf, const char * fmt, va_list ap )
-{
-    fprintf( file, "%s", buf );
-    vfprintf( file, fmt, ap );
-    fprintf( file, "\n" );
-}
+/*
+ static void _log( FILE * file, const char * buf, const char * fmt, va_list ap )
+ {
+ fprintf( file, "%s", buf );
+ vfprintf( file, fmt, ap );
+ fprintf( file, "\n" );
+ }
+ */
+
+#define _log( file, prefix, data ) \
+        fprintf( (file), "%s", (prefix) ); \
+        fprintf( (file), "%s", data ); \
+        fprintf( (file), "\n" )
 
 static const char * _log_datetime_separator( char separator )
 {
@@ -310,9 +319,11 @@ const char * log_time( void )
     return dbuf;
 }
 
+
 static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
 {
     char buf[128];
+    char * msg = NULL;
 
     if( (level & log->flags) != level ) return 0;
 
@@ -354,20 +365,33 @@ static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
             }
         }
     }
-    if( log->flags & LOG_STDOUT )
+
+    msg = _ssprintf( NULL, fmt, ap );
+
+    if( msg )
     {
-        _log( stdout, buf, fmt, ap );
+        if( log->flags & LOG_STDOUT )
+        {
+            _log( stdout, buf, msg );
+        }
+        if( log->flags & LOG_STDERR )
+        {
+            _log( stderr, buf, msg );
+        }
+        if( *log->file )
+        {
+            FILE * flog = fopen( log->file, "a" );
+            if( !flog ) return 0;
+            _log( flog, buf, msg );
+            fclose( flog );
+        }
+        Free( msg );
     }
-    if( log->flags & LOG_STDERR )
+    else
     {
-        _log( stderr, buf, fmt, ap );
-    }
-    if( *log->file )
-    {
-        FILE * flog = fopen( log->file, "a" );
-        if( !flog ) return 0;
-        _log( flog, buf, fmt, ap );
-        fclose( flog );
+        fprintf( stderr, "%s", buf );
+        vfprintf( stderr, fmt, ap );
+        fprintf( stderr, "\n" );
     }
 
     return 1;
@@ -379,7 +403,6 @@ int plog( Log log, LogFlags level, const char * fmt, ... )
     va_list ap;
     va_start( ap, fmt );
     rc = _plog( log, level, fmt, ap );
-    va_end( ap );
     va_end( ap );
     return rc;
 }
