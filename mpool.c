@@ -474,10 +474,17 @@ void mp_dump( mpool mp, FILE * fout, size_t maxw )
         }
         onew = largest / maxw;
 
+#ifndef __WINDOWS__
         fprintf( fout, "ID: %zu, size: %s, ", current->id,
                 _mp_format_size( current->size ) );
         fprintf( fout, "blocks: %zu, internal: %s\n", mb_total,
                 _mp_format_size( mb_total * sizeof(struct _mblk) ) );
+#else
+        fprintf( fout, "ID: %u, size: %s, ", current->id,
+                _mp_format_size( current->size ) );
+        fprintf( fout, "blocks: %u, internal: %s\n", mb_total,
+                _mp_format_size( mb_total * sizeof(struct _mblk) ) );
+#endif
 
         mb = (mblk)current->pool;
         while( MB_VALID( mb, current ) )
@@ -509,10 +516,13 @@ void mp_dump( mpool mp, FILE * fout, size_t maxw )
         fprintf( fout, "\n" );
         current = current->next;
     }
-
+#ifndef __WINDOWS__
     fprintf( fout, "%-16s: [.] - free, [*] - busy, [#] - locked\n"
             "%-16s: %zu\n", "Legend", "Total pools", mp_pools );
-
+#else
+    fprintf( fout, "%-16s: [.] - free, [*] - busy, [#] - locked\n"
+            "%-16s: %u\n", "Legend", "Total pools", mp_pools );
+#endif
     fprintf( fout, "%-16s: %s\n", "Largest pool",
             _mp_format_size( mp_largest ) );
     fprintf( fout, "%-16s: %s\n", "Total allocated",
