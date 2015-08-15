@@ -72,5 +72,37 @@ typedef unsigned char *     puchar;
 typedef unsigned int *      puint;
 typedef unsigned long *     pulong;
 typedef size_t *            psizet;
+#if defined(__WINDOWS__)
+typedef unsigned int      uint;
+#endif
+
+#ifndef forever
+# define forever while(1)
+#endif
+
+/*
+typedef union var
+{
+    char c;
+    unsigned char uc;
+    short s;
+    unsigned short us;
+    int i;
+    unsigned int ui;
+    long l;
+    unsigned long ul;
+
+    void * v;
+
+    char * pc;
+    unsigned char * puc;
+    short * ps;
+    unsigned short * pus;
+    int * pi;
+    unsigned int * pui;
+    long * pl;
+    unsigned long * pul;
+} var;
+*/
 
 #endif /* CONFIG_H_ */
