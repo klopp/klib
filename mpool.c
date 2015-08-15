@@ -297,7 +297,11 @@ void * mp_alloc( mpool mp, size_t size )
 
     if( !ptr && (mp->flags & MP_EXPAND) == MP_EXPAND )
     {
+/*
         mpool newpool = mp_create( (largest + size) * MP_EXPAND_FOR,
+                mp->flags );
+*/
+        mpool newpool = mp_create( MP_EXPAND_FOR( (largest + size) ),
                 mp->flags );
         if( !newpool ) return NULL;
 

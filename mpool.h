@@ -30,7 +30,7 @@ extern "C"
  * If mp_alloc() failed, new mpool will be added to chain with new
  * size = ([old mpool size] + [requested size]) * MP_EXPAND_FOR
  */
-#define MP_EXPAND_FOR(sz)   (sz) += (sz) / 2
+#define MP_EXPAND_FOR(sz)   ((sz) + ((sz) / 2))
 
 #define MP_USE_LOCKING  1
 
