@@ -45,7 +45,6 @@ typedef struct _Log
     char format_dbg;
     char format_datetime;
     char * file;
-    char * buf;
 }*Log;
 
 /*
