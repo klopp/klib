@@ -14,7 +14,12 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <sys/stat.h>
+#ifndef __WINDOWS__
 #include <sys/time.h>
+#else
+#include <process.h>
+#include "tod.h"
+#endif
 
 static const char * _log_format_level( Log log, LogFlags level )
 {
@@ -322,19 +327,28 @@ static int _plog( Log log, LogFlags level, const char * fmt, va_list ap )
         char dateptr[16];
         char timeptr[16];
         char mseconds[16];
-
+#ifndef __WINDOWS__
         struct tm *lt;
         struct timeval tv;
 
         gettimeofday( &tv, NULL );
-        lt = localtime( &tv.tv_sec );
+        lt = localtime( (time_t *)&tv.tv_sec );
 
         sprintf( dateptr, "%u.%02u.%02u", lt->tm_year + 1900, lt->tm_mon + 1,
                 lt->tm_mday );
         sprintf( timeptr, "%02u:%02u:%02u", lt->tm_hour, lt->tm_min,
                 lt->tm_sec );
-        sprintf( mseconds, "%-6lu", tv.tv_usec );
+        sprintf( mseconds, "%-3lu", tv.tv_usec / 1000 );
+#else
+		SYSTEMTIME lt;
+		GetLocalTime(&lt);
 
+		sprintf(dateptr, "%u.%02u.%02u", lt.wYear, lt.wMonth,
+			lt.wDay);
+		sprintf(timeptr, "%02u:%02u:%02u", lt.wHour, lt.wMinute,
+			lt.wSecond);
+		sprintf(mseconds, "%-3lu", lt.wMilliseconds);
+#endif
         if( log->flags & (LOG_DATE | LOG_TIME | LOG_MILLISEC) )
         {
             if( log->flags & LOG_DATE )
