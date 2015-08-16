@@ -26,7 +26,7 @@
 # include <windows.h>
 # define pid_t          int
 # define strcasecmp     _stricmp
-# define snprintf       _snprintf
+//# define snprintf       _snprintf
 # define _CRT_SECURE_NO_WARNINGS
 # pragma warning(disable : 4996)
 #else
