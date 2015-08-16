@@ -11,6 +11,7 @@
 #ifndef __WINDOWS__
 # ifndef __unix__
 #  define __WINDOWS__
+#  define WIN32_LEAN_AND_MEAN
 # endif
 #endif
 
