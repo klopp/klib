@@ -44,7 +44,7 @@ void * aset( Array array, size_t idx, void * data )
 {
     if( idx >= array->size )
     {
-        size_t newsize = idx * ARR_K_EXPAND;
+        size_t newsize = ARR_IDX_EXPAND(idx);
         void ** ptr = Calloc( newsize, sizeof(void **) );
         if( !ptr ) return NULL;
         memcpy( ptr, array->data, array->size * sizeof(void **) );
