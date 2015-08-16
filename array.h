@@ -10,7 +10,7 @@
 
 #include "config.h"
 
-#define ARR_K_EXPAND    1.5
+#define ARR_IDX_EXPAND(idx) (idx) + ((idx)/2)
 
 #ifdef __cplusplus
 extern "C"
