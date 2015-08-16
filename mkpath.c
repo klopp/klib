@@ -9,6 +9,10 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include "../stringlib/stringlib.h"
+#if defined(__WINDOWS__)
+# include <direct.h>
+# define S_ISDIR(s) ((s) & S_IFDIR)
+#endif
 
 static int _mkpath( const char *path, mode_t mode )
 {
@@ -18,7 +22,7 @@ static int _mkpath( const char *path, mode_t mode )
     if( stat( path, &st ) != 0 )
     {
 #if defined(__WINDOWS__)
-        if( mkdir( path ) != 0 ) status = -1;
+        if( _mkdir( path ) != 0 ) status = -1;
 #else
         if( mkdir( path, mode ) != 0 && errno != EEXIST ) status = -1;
 #endif
