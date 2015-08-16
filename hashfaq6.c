@@ -11,7 +11,7 @@ static unsigned hash = 0;
 
 unsigned hash_faq6( unsigned startval, const void * buf, size_t size )
 {
-    for( hash = startval; size; (unsigned char *)buf++, size-- )
+    for( hash = startval; size; ((unsigned char *)buf)++, size-- )
     {
         hash += *((unsigned char *)buf);
         hash += (hash << 10);
