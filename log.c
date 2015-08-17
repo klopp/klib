@@ -18,7 +18,6 @@
 #include <sys/time.h>
 #else
 #include <process.h>
-#include "tod.h"
 #endif
 
 static const char * _log_format_level( Log log, LogFlags level )
