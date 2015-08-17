@@ -11,11 +11,12 @@ static unsigned hash = 0;
 
 unsigned hash_faq6( unsigned startval, const void * buf, size_t size )
 {
-    for( hash = startval; size; size--, (unsigned char *)buf++ )
+    for( hash = startval; size; size-- )
     {
         hash += *((unsigned char *)buf);
         hash += (hash << 10);
         hash ^= (hash >> 6);
+        buf = (unsigned char  *)buf + 1;
     }
     hash += (hash << 3);
     hash ^= (hash >> 11);
