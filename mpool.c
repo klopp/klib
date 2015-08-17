@@ -458,7 +458,7 @@ void mp_dump( mpool mp, FILE * fout, size_t maxw )
     while( current )
     {
         size_t largest = 0;
-        size_t total = 0;
+        //size_t total = 0;
         size_t mb_total = 0;
         size_t onew;
 		mblk mb;
@@ -472,7 +472,7 @@ void mp_dump( mpool mp, FILE * fout, size_t maxw )
         {
             mp_blocks++;
             mb_total++;
-            total += mb->size;
+            //total += mb->size;
             if( largest < mb->size ) largest = mb->size;
             mb = MB_NEXT( mb );
         }
