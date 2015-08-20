@@ -55,7 +55,7 @@ typedef enum _mp_flags
 {
     MP_DIRTY = 0x01,        // internal defrag flag
     MP_EXPAND = 0x02,       // expand mpool memory if needed
-    MP_SLOW = 0x04,         // ???
+    MP_SLOW = 0x04,         // merge free blocks in mp_free(), RESERVED
     MP_DEFAULT = (0x00)
 } mp_flags;
 
