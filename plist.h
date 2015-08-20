@@ -26,7 +26,7 @@ typedef struct _Pair
     char * second;
 } *Pair;
 
-void delPair( void * ptr );
+void * delPair( void * ptr );
 
 PList plcreate( void );
 Pair pladd( List list, const char * first, const char * second );

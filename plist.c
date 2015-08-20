@@ -7,7 +7,7 @@
 
 #include "plist.h"
 
-void delPair( void * ptr )
+void * delPair( void * ptr )
 {
     if( ptr )
     {
@@ -16,6 +16,7 @@ void delPair( void * ptr )
         Free( pair->second );
         Free( pair );
     }
+    return NULL;
 }
 
 PList plcreate( void )
@@ -28,12 +29,21 @@ Pair pladd( List list, const char * first, const char * second )
     Pair pair = Calloc( sizeof(struct _Pair), 1 );
     if( pair )
     {
-        pair->first = Strdup( first );
-        pair->second = Strdup( second );
-        if( !pair->second || !pair->first )
+        if( first )
         {
-            delPair( pair );
-            pair = NULL;
+            pair->first = Strdup( first );
+            if( !pair->first )
+            {
+                return delPair( pair );
+            }
+        }
+        if( second )
+        {
+            pair->second = Strdup( second );
+            if( !pair->second )
+            {
+                return delPair( pair );
+            }
         }
     }
     return pair;
