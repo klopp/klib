@@ -26,16 +26,17 @@ typedef struct _Pair
     char * second;
 } *Pair;
 
-void * delPair( void * ptr );
+void * pair_Delete( void * ptr );
+Pair pair_Create( const char * first, const char * second );
 
 PList plcreate( void );
 Pair pladd( List list, const char * first, const char * second );
 
-#define sldestroy(slist)    ldestroy((slist))
-#define slclear(slist)      lclear((slist))
-#define slfirst(slist)      lfirst((slist))
-#define slnext(slist)       lnext((slist))
-#define slwalk(slist)       lwalk((slist))
+#define pldestroy(slist)    ldestroy((slist))
+#define plclear(slist)      lclear((slist))
+#define plfirst(slist)      lfirst((slist))
+#define plnext(slist)       lnext((slist))
+#define plwalk(slist)       lwalk((slist))
 
 #ifdef __cplusplus
 }
