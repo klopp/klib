@@ -26,6 +26,9 @@ typedef struct _Pair
     char * second;
 } *Pair;
 
+#define PAIR_KEY(pair)      (pair)->first
+#define PAIR_VAL(pair)      (pair)->second
+
 void * pair_Delete( void * ptr );
 Pair pair_Create( const char * first, const char * second );
 
