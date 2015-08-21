@@ -46,7 +46,7 @@ Pair pair_Create( const char * first, const char * second )
 
 PList plcreate( void )
 {
-    return lcreate( delPair );
+    return lcreate( pair_Delete );
 }
 
 Pair pladd( List list, const char * first, const char * second )
