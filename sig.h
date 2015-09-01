@@ -18,6 +18,8 @@ typedef struct _SigNames
 
 const char * signal_name( int signo );
 const SigNames signal_names( void );
+void signal_ign_all( void  );
+void signal_def_all( void  );
 
 
 #endif /* SIG_H_ */

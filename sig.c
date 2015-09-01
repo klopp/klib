@@ -49,6 +49,26 @@ _SI(SIGXCPU)
 _SI(SIGXFSZ)
 { 0, NULL } };
 
+void signal_ign_all( void  )
+{
+    SigNames sig_data = SigData;
+
+    while( sig_data->signo )
+    {
+        signal( sig_data->signo, SIG_IGN );
+    }
+}
+
+void signal_def_all( void  )
+{
+    SigNames sig_data = SigData;
+
+    while( sig_data->signo )
+    {
+        signal( sig_data->signo, SIG_DFL );
+    }
+}
+
 const char * signal_name( int signo )
 {
     SigNames sig_data = SigData;
