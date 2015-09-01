@@ -11,10 +11,14 @@
 #include <signal.h>
 
 #define _SI(s)  { (s), #s },
-//_SI(SIGLOST)
-//_SI(SIGEMT)
 static struct _SigNames SigData[] =
 {
+#if defined(SIGLOST)
+_SI(SIGLOST)
+#endif
+#if defined(SIGEMT)
+_SI(SIGEMT)
+#endif
 _SI(SIGABRT)
 _SI(SIGALRM)
 _SI(SIGBUS)
