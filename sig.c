@@ -52,20 +52,20 @@ _SI(SIGXFSZ)
 void signal_ign_all( void  )
 {
     SigNames sig_data = SigData;
-
     while( sig_data->signo )
     {
         signal( sig_data->signo, SIG_IGN );
+        sig_data++;
     }
 }
 
 void signal_def_all( void  )
 {
     SigNames sig_data = SigData;
-
     while( sig_data->signo )
     {
         signal( sig_data->signo, SIG_DFL );
+        sig_data++;
     }
 }
 
@@ -82,6 +82,7 @@ const char * signal_name( int signo )
     while( sig_data->signo )
     {
         if( signo == sig_data->signo ) return sig_data->signame;
+        sig_data++;
     }
     sprintf( buf, "SIG-UNKNOWN (%d)", signo );
     return buf;
