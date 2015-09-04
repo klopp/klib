@@ -5,9 +5,10 @@
  *      Author: Vsevolod Lutovinov <klopp@yandex.ru>
  */
 
-#ifndef SIG_H_
-#define SIG_H_
+#ifndef __SIG_H_
+#define __SIG_H_
 
+#include "config.h"
 #include <signal.h>
 
 #ifdef __cplusplus
@@ -27,7 +28,7 @@ void signal_ign_all( void  );
 void signal_def_all( void  );
 
 #ifdef __cplusplus
-};
+}
 #endif
 
-#endif /* SIG_H_ */
+#endif /* __SIG_H_ */
