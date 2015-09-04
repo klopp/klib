@@ -7,7 +7,7 @@
 
 #include "plist.h"
 
-void * pair_Delete( void * ptr )
+void pair_Delete( void * ptr )
 {
     if( ptr )
     {
@@ -15,6 +15,17 @@ void * pair_Delete( void * ptr )
         Free( pair->first );
         Free( pair->second );
         Free( pair );
+    }
+}
+
+const char * plget( PList list, const char * key )
+{
+    char c = key[0];
+    Pair pair = plfirst( list );
+    while( pair )
+    {
+        if( c == pair->first[0] && !strcmp( key, pair->first ) ) return pair->second;
+        pair = plnext( list );
     }
     return NULL;
 }
@@ -29,7 +40,8 @@ Pair pair_Create( const char * first, const char * second )
             pair->first = Strdup( first );
             if( !pair->first )
             {
-                return pair_Delete( pair );
+                pair_Delete( pair );
+                return NULL;
             }
         }
         if( second )
@@ -37,7 +49,8 @@ Pair pair_Create( const char * first, const char * second )
             pair->second = Strdup( second );
             if( !pair->second )
             {
-                return pair_Delete( pair );
+                pair_Delete( pair );
+                return NULL;
             }
         }
     }

@@ -29,17 +29,19 @@ typedef struct _Pair
 #define PAIR_KEY(pair)      (pair)->first
 #define PAIR_VAL(pair)      (pair)->second
 
-void * pair_Delete( void * ptr );
+void pair_Delete( void * ptr );
 Pair pair_Create( const char * first, const char * second );
 
 PList plcreate( void );
-Pair pladd( List list, const char * first, const char * second );
+Pair pladd( PList list, const char * first, const char * second );
+const char * plget( PList list, const char * key );
 
-#define pldestroy(slist)    ldestroy((slist))
-#define plclear(slist)      lclear((slist))
-#define plfirst(slist)      lfirst((slist))
-#define plnext(slist)       lnext((slist))
-#define plwalk(slist)       lwalk((slist))
+#define pldestroy(plist)    ldestroy((plist))
+#define plclear(plist)      lclear((plist))
+#define plfirst(plist)      lfirst((plist))
+#define plnext(plist)       lnext((plist))
+#define plwalk(plist)       lwalk((plist))
+#define plhead(plist)       lhead((plist))
 
 #ifdef __cplusplus
 }
