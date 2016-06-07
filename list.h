@@ -32,6 +32,7 @@ typedef struct _List
     LNode cursor;
     L_destructor destructor;
     size_t size;
+    int lock;
 }*List;
 
 List lcreate( L_destructor destructor );
