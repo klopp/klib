@@ -8,6 +8,8 @@
 #ifndef VA_ARG_H_
 #define VA_ARG_H_
 
+#include "config.h"
+
 #define __VA_NARG__(...) \
         __VA_NARG_(_0, ## __VA_ARGS__, __RSEQ_N())
 #define __VA_NARG_(...) \
