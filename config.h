@@ -63,48 +63,36 @@
 # define Calloc( size, n )      calloc( (size), (n) )
 # define Realloc( src, n )      realloc( (src), (n) )
 # define Free( ptr )            free( (ptr) )
-# define Munlock( ptr )         NO_Munlock_implementation
-# define Mlock( ptr )           NO_Mlock_implementation
+# define Munlock( ptr )         (void)ptr
+# define Mlock( ptr )           (void)ptr
 #endif
 
-typedef char *              pchar;
-typedef int *               pint;
-typedef long *              plong;
-typedef unsigned char *     puchar;
-typedef unsigned int *      puint;
-typedef unsigned long *     pulong;
-typedef size_t *            psizet;
+typedef char * pchar;
+typedef int * pint;
+typedef long * plong;
+typedef unsigned char * puchar;
+typedef unsigned int * puint;
+typedef unsigned long * pulong;
+typedef size_t * psizet;
 #if defined(__WINDOWS__)
-typedef unsigned int      uint;
+typedef unsigned int uint;
 #endif
 
-#ifndef forever
-# define forever while(1)
-#endif
+#define forever()       for(;;)
+#define is              ==
+#define isnot           !=
+#define not             !
+#define and             &&
+#define or              ||
+#define unused( var )   ((void)var)
 
-/*
-typedef union var
-{
-    char c;
-    unsigned char uc;
-    short s;
-    unsigned short us;
-    int i;
-    unsigned int ui;
-    long l;
-    unsigned long ul;
+#define lambda(return_type, function_body) \
+   ({ \
+   return_type __fn__ function_body \
+   __fn__; \
+   })
 
-    void * v;
+#define lmbd(c_) ({ c_ _;})
 
-    char * pc;
-    unsigned char * puc;
-    short * ps;
-    unsigned short * pus;
-    int * pi;
-    unsigned int * pui;
-    long * pl;
-    unsigned long * pul;
-} var;
-*/
 
 #endif /* CONFIG_H_ */
