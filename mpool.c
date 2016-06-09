@@ -95,7 +95,7 @@ static void _mp_destroy(void) {
  * Recursive check for all mpools in chain:
  */
 static int _mp_valid_ptr(void *ptr, const mpool mp) {
-    if(!mp || !ptr) {
+    if (!mp || !ptr) {
         return 0;
     }
     return MP_VALID(ptr, mp) ? 1 : _mp_valid_ptr(ptr, mp->next);
@@ -105,54 +105,51 @@ mpool mp_create(size_t size, mp_flags flags) {
     mpool mp;
     size = (size ? size : MPOOL_MIN);
     MS_ALIGN(size, MPOOL_MIN);
-    if((flags & MP_EXPAND) != MP_EXPAND) {
+    if ((flags & MP_EXPAND) != MP_EXPAND) {
         mp = _mp_malloc(sizeof(struct _mpool) + size + sizeof(struct _mblk));
-        if(!mp) {
+        if (!mp) {
             return NULL;
         }
-        mp->pool = (char *)(mp + 1);
-    } else {
+        mp->pool = (char *) (mp + 1);
+    }
+    else {
         mp = _mp_malloc(sizeof(struct _mpool));
-        if(!mp) {
+        if (!mp) {
             return NULL;
         }
         mp->pool = _mp_malloc(size + sizeof(struct _mblk));
-        if(!mp->pool) {
+        if (!mp->pool) {
             free(mp);
             return NULL;
         }
     }
-
-    if(!_mp_atexit) {
+    if (!_mp_atexit) {
         _mp_atexit = 1;
         atexit(_mp_destroy);
     }
-
     mp->id = 0;
     mp->size = size;
     mp->next = NULL;
     mp->flags = flags;
     mp->min = mp->pool + sizeof(struct _mblk);
     mp->max = mp->pool + size - MBLK_MIN;
-
-    mp_release( mp );
+    mp_release(mp);
     return mp;
 }
 
-void mp_release(mpool mp)
-{
-    memset( ((mblk)mp->pool), 0, mp->size );
-    ((mblk)mp->pool)->flags = 0;
-    ((mblk)mp->pool)->size = mp->size;
-    ((mblk)mp->pool)->signature = MBLK_SIGNATURE;
+void mp_release(mpool mp) {
+    memset(((mblk) mp->pool), 0, mp->size);
+    ((mblk) mp->pool)->flags = 0;
+    ((mblk) mp->pool)->size = mp->size;
+    ((mblk) mp->pool)->signature = MBLK_SIGNATURE;
 }
 
 void mp_destroy(mpool mp) {
-    if(mp) {
-        if((mp->flags & MP_EXPAND) == MP_EXPAND) {
+    if (mp) {
+        if ((mp->flags & MP_EXPAND) == MP_EXPAND) {
             free(mp->pool);
         }
-        if(mp->next) {
+        if (mp->next) {
             mp_destroy(mp->next);
         }
         free(mp);
@@ -165,7 +162,7 @@ void *mp_calloc(mpool mp, size_t size, size_t n) {
     size *= n;
     MS_ALIGN(size, MBLK_MIN);
     ptr = mp_alloc(mp, size);
-    if(ptr) {
+    if (ptr) {
         memset(ptr, 0, size);
     }
     return ptr;
@@ -174,7 +171,7 @@ void *mp_calloc(mpool mp, size_t size, size_t n) {
 char *mp_strdup(mpool mp, const char *src) {
     size_t size = strlen(src) + 1;
     char *ptr = mp_alloc(mp, size);
-    if(ptr) {
+    if (ptr) {
         memcpy(ptr, src, size);
     }
     return ptr;
@@ -182,13 +179,13 @@ char *mp_strdup(mpool mp, const char *src) {
 
 void mp_walk(mpool mp, mp_walker walker, void *data) {
     MP_SET(mp);
-    if(mp) {
-        mblk mb = (mblk)mp->pool;
-        while(MB_VALID(mb, mp)) {
+    if (mp) {
+        mblk mb = (mblk) mp->pool;
+        while (MB_VALID(mb, mp)) {
             walker(mp, mb, data);
             mb = MB_NEXT(mb);
         }
-        if(mp->next) {
+        if (mp->next) {
             mp_walk(mp->next, walker, data);
         }
     }
@@ -201,24 +198,24 @@ static size_t _mp_defragment_pool(const mpool mp) {
     mblk mb;
     mblk next;
     size_t junctions;
-    if(!mp || (mp->flags & MP_DIRTY) != MP_DIRTY) {
+    if (!mp || (mp->flags & MP_DIRTY) != MP_DIRTY) {
         return 0;
     }
     junctions = 0;
-    mb = (mblk)mp->pool;
-    while(MB_VALID(mb, mp)) {
+    mb = (mblk) mp->pool;
+    while (MB_VALID(mb, mp)) {
         next = MB_NEXT(mb);
-        if(!MB_VALID(next, mp)) {
+        if (!MB_VALID(next, mp)) {
             break;
         }
-        if((mb->flags & MB_BUSY) || (next->flags & MB_BUSY)) {
+        if ((mb->flags & MB_BUSY) || (next->flags & MB_BUSY)) {
             mb = next;
             continue;
         }
         mb->size += next->size + sizeof(struct _mblk);
         junctions++;
     }
-    if(junctions) {
+    if (junctions) {
         mp->flags &= (~MP_DIRTY);
     }
     return junctions;
@@ -231,25 +228,25 @@ static void *_mp_alloc(const mpool mp, size_t size) {
     mblk best = NULL;
     mblk mb;
     size_t min;
-    mb = (mblk)mp->pool;
+    mb = (mblk) mp->pool;
     min = mp->size;
-    while(MB_VALID(mb, mp)) {
-        if(!(mb->flags & MB_BUSY) && mb->size >= size) {
-            if(mb->size == size) {
+    while (MB_VALID(mb, mp)) {
+        if (!(mb->flags & MB_BUSY) && mb->size >= size) {
+            if (mb->size == size) {
                 best = mb;
                 break;
             }
-            if(!best || mb->size < min) {
+            if (!best || mb->size < min) {
                 best = mb;
                 min = mb->size;
             }
         }
         mb = MB_NEXT(mb);
     }
-    if(best) {
-        if(best->size > size + MBLK_MIN + sizeof(struct _mblk)) {
+    if (best) {
+        if (best->size > size + MBLK_MIN + sizeof(struct _mblk)) {
             // split block
-            mb = (mblk)((char *)best + sizeof(struct _mblk) + size);
+            mb = (mblk) ((char *) best + sizeof(struct _mblk) + size);
             mb->signature = MBLK_SIGNATURE;
             mb->flags = 0;
             mb->size = best->size - size - sizeof(struct _mblk);
@@ -272,25 +269,24 @@ void *mp_alloc(mpool mp, size_t size) {
     current = mp;
     do {
         workhorse++;
-        if(current->size > largest) {
+        if (current->size > largest) {
             largest = current->size;
         }
         ptr = _mp_alloc(current, size);
-        if(!ptr && _mp_defragment_pool(current)) ptr = _mp_alloc(current,
-                    size);
+        if (!ptr && _mp_defragment_pool(current))
+            ptr = _mp_alloc(current, size);
         current = current->next;
-    } while(!ptr && current);
-    if(!ptr && (mp->flags & MP_EXPAND) == MP_EXPAND) {
+    } while (!ptr && current);
+    if (!ptr && (mp->flags & MP_EXPAND) == MP_EXPAND) {
         /*
-                mpool newpool = mp_create( (largest + size) * MP_EXPAND_FOR,
-                        mp->flags );
-        */
-        mpool newpool = mp_create(MP_EXPAND_FOR((largest + size)),
-                                  mp->flags);
-        if(!newpool) {
+         mpool newpool = mp_create( (largest + size) * MP_EXPAND_FOR,
+         mp->flags );
+         */
+        mpool newpool = mp_create(MP_EXPAND_FOR((largest + size)), mp->flags);
+        if (!newpool) {
             return NULL;
         }
-        if(mp->next) {
+        if (mp->next) {
             newpool->next = mp->next;
         }
         mp->next = newpool;
@@ -311,9 +307,9 @@ void *mp_alloc(mpool mp, size_t size) {
 #if MP_USE_LOCKING
 int mp_lock(mpool mp, void *ptr) {
     MP_SET(mp);
-    if(_mp_valid_ptr(ptr, mp)) {
-        if((((struct _mblk *)ptr) - 1)->flags & MB_BUSY) {
-            (((struct _mblk *)ptr) - 1)->flags |= MB_LOCKED;
+    if (_mp_valid_ptr(ptr, mp)) {
+        if ((((struct _mblk *) ptr) - 1)->flags & MB_BUSY) {
+            (((struct _mblk *) ptr) - 1)->flags |= MB_LOCKED;
             return 1;
         }
     }
@@ -322,9 +318,9 @@ int mp_lock(mpool mp, void *ptr) {
 
 int mp_unlock(mpool mp, void *ptr) {
     MP_SET(mp);
-    if(_mp_valid_ptr(ptr, mp)) {
-        if((((struct _mblk *)ptr) - 1)->flags & MB_LOCKED) {
-            (((struct _mblk *)ptr) - 1)->flags &= ~(MB_LOCKED);
+    if (_mp_valid_ptr(ptr, mp)) {
+        if ((((struct _mblk *) ptr) - 1)->flags & MB_LOCKED) {
+            (((struct _mblk *) ptr) - 1)->flags &= ~(MB_LOCKED);
             return 1;
         }
     }
@@ -334,7 +330,7 @@ int mp_unlock(mpool mp, void *ptr) {
 int mp_locked(mpool mp, void *ptr) {
     MP_SET(mp);
     return _mp_valid_ptr(ptr, mp) ?
-           ((((struct _mblk *)ptr) - 1)->flags & MB_LOCKED) : 0;
+            ((((struct _mblk *) ptr) - 1)->flags & MB_LOCKED) : 0;
 }
 #endif
 
@@ -342,14 +338,14 @@ void *mp_realloc(mpool mp, void *src, size_t size) {
     void *dest;
     MP_SET(mp);
     dest = NULL;
-    if(_mp_valid_ptr(src, mp)) {
+    if (_mp_valid_ptr(src, mp)) {
 #if MP_USE_LOCKING
-        if(!((((struct _mblk *)src) - 1)->flags & MB_LOCKED)) {
+        if (!((((struct _mblk *) src) - 1)->flags & MB_LOCKED)) {
 #endif
             dest = mp_alloc(mp, size);
-            if(dest) {
-                size_t tomove = (((struct _mblk *)src) - 1)->size;
-                if(tomove > size) {
+            if (dest) {
+                size_t tomove = (((struct _mblk *) src) - 1)->size;
+                if (tomove > size) {
                     tomove = size;
                 }
                 memcpy(dest, src, tomove);
@@ -364,39 +360,43 @@ void *mp_realloc(mpool mp, void *src, size_t size) {
 
 int mp_free(mpool mp, void *ptr) {
     MP_SET(mp);
-    if(!ptr || !mp) {
+    if (!ptr || !mp) {
         return 0;
     }
-    if(!MP_VALID(ptr, mp)) {
+    if (!MP_VALID(ptr, mp)) {
         return mp_free(mp->next, ptr);
     }
 #if MP_USE_LOCKING
-    if((((struct _mblk *)ptr) - 1)->flags & MB_LOCKED) {
+    if ((((struct _mblk *) ptr) - 1)->flags & MB_LOCKED) {
         return 0;
     }
 #endif
-    if((((struct _mblk *)ptr) - 1)->flags & MB_BUSY) {
+    if ((((struct _mblk *) ptr) - 1)->flags & MB_BUSY) {
         mp->flags |= MP_DIRTY;
     }
-    (((struct _mblk *)ptr) - 1)->flags = 0;
+    (((struct _mblk *) ptr) - 1)->flags = 0;
     return 1;
 }
 
 static char *_mp_format_size(unsigned long size) {
     static char bsz[32];
-    if(size < 1024) {
+    if (size < 1024) {
         sprintf(bsz, "%luB", size);
-    } else if(size < 1024 * 1024) {
-        if(size % 1024) {
+    }
+    else if (size < 1024 * 1024) {
+        if (size % 1024) {
             sprintf(bsz, "%lu.%luKb", size / 1024, size % 1024);
-        } else {
+        }
+        else {
             sprintf(bsz, "%luKb", size / 1024);
         }
-    } else {
-        if(size % (1024 * 1024)) {
+    }
+    else {
+        if (size % (1024 * 1024)) {
             sprintf(bsz, "%lu.%luMb", size / (1024 * 1024),
                     size % (1024 * 1024));
-        } else {
+        }
+        else {
             sprintf(bsz, "%luMb", size / (1024 * 1024));
         }
     }
@@ -412,12 +412,12 @@ void mp_dump(mpool mp, FILE *fout, size_t maxw) {
     size_t mp_pools = 0;
     mpool current;
     char *outbuf = malloc(maxw + 32);
-    if(!outbuf) {
+    if (!outbuf) {
         return;
     }
     MP_SET(mp);
     current = mp;
-    while(current) {
+    while (current) {
         size_t largest = 0;
         //size_t total = 0;
         size_t mb_total = 0;
@@ -425,15 +425,15 @@ void mp_dump(mpool mp, FILE *fout, size_t maxw) {
         mblk mb;
         mp_pools++;
         mp_total += current->size;
-        if(mp_largest < current->size) {
+        if (mp_largest < current->size) {
             mp_largest = current->size;
         }
-        mb = (mblk)current->pool;
-        while(MB_VALID(mb, current)) {
+        mb = (mblk) current->pool;
+        while (MB_VALID(mb, current)) {
             mp_blocks++;
             mb_total++;
             //total += mb->size;
-            if(largest < mb->size) {
+            if (largest < mb->size) {
                 largest = mb->size;
             }
             mb = MB_NEXT(mb);
@@ -450,28 +450,29 @@ void mp_dump(mpool mp, FILE *fout, size_t maxw) {
         fprintf(fout, "blocks: %u, internal: %s\n", mb_total,
                 _mp_format_size(mb_total * sizeof(struct _mblk)));
 #endif
-        mb = (mblk)current->pool;
-        while(MB_VALID(mb, current)) {
+        mb = (mblk) current->pool;
+        while (MB_VALID(mb, current)) {
             size_t w;
             char c = '.';
-            if(mb->flags & MB_BUSY) {
+            if (mb->flags & MB_BUSY) {
                 c = '*';
-                if(mb->flags & MB_LOCKED) {
+                if (mb->flags & MB_LOCKED) {
                     c = '#';
                 }
-            } else {
+            }
+            else {
                 mp_total_free += mb->size;
-                if(mp_largest_free < mb->size) {
+                if (mp_largest_free < mb->size) {
                     mp_largest_free = mb->size;
                 }
             }
             memset(outbuf, 0, maxw + 32);
             sprintf(outbuf, "%10s [", _mp_format_size(mb->size));
             w = mb->size / onew;
-            if(w > maxw) {
+            if (w > maxw) {
                 w = maxw;
             }
-            if(!w) {
+            if (!w) {
                 w = 1;
             }
             memset(outbuf + strlen(outbuf), c, w);
@@ -481,25 +482,25 @@ void mp_dump(mpool mp, FILE *fout, size_t maxw) {
         fprintf(fout, "\n");
         current = current->next;
     }
+    fprintf(fout, "%-16s: [.] - free, [*] - busy, [#] - locked\n",
+            "Legend");
+    if (mp_pools > 1) {
 #ifndef __WINDOWS__
-    fprintf(fout, "%-16s: [.] - free, [*] - busy, [#] - locked\n"
-            "%-16s: %zu\n", "Legend", "Total pools", mp_pools);
+        fprintf(fout, "%-16s: %zu\n", "Total pools", mp_pools);
 #else
-    fprintf(fout, "%-16s: [.] - free, [*] - busy, [#] - locked\n"
-            "%-16s: %u\n", "Legend", "Total pools", mp_pools);
+        fprintf(fout, "%-16s: %u\n", "Total pools", mp_pools);
 #endif
-    fprintf(fout, "%-16s: %s\n", "Largest pool",
-            _mp_format_size(mp_largest));
-    fprintf(fout, "%-16s: %s\n", "Total allocated",
-            _mp_format_size(mp_total));
-    fprintf(fout, "%-16s: %s\n", "Total free",
-            _mp_format_size(mp_total_free));
+        fprintf(fout, "%-16s: %s\n", "Largest pool",
+                _mp_format_size(mp_largest));
+    }
+    fprintf(fout, "%-16s: %s\n", "Total allocated", _mp_format_size(mp_total));
+    fprintf(fout, "%-16s: %s\n", "Total free", _mp_format_size(mp_total_free));
     fprintf(fout, "%-16s: %lu\n", "Total blocks", mp_blocks);
     fprintf(fout, "%-16s: %s\n", "Largest free",
             _mp_format_size(mp_largest_free));
     fprintf(fout, "%-16s: %s\n", "Internal memory",
             _mp_format_size(
-                (mp_blocks * sizeof(struct _mblk))
-                + (mp_pools * sizeof(struct _mpool))));
+                    (mp_blocks * sizeof(struct _mblk))
+                            + (mp_pools * sizeof(struct _mpool))));
     free(outbuf);
 }
