@@ -103,6 +103,7 @@ static int _mp_valid_ptr(void *ptr, const mpool mp) {
 
 mpool mp_create(size_t size, mp_flags flags) {
     mpool mp;
+    size = (size ? size : MPOOL_MIN);
     MS_ALIGN(size, MPOOL_MIN);
     if(!_mp_atexit) {
         _mp_atexit = 1;
@@ -125,16 +126,24 @@ mpool mp_create(size_t size, mp_flags flags) {
             return NULL;
         }
     }
+
     mp->id = 0;
     mp->size = size;
     mp->next = NULL;
     mp->flags = flags;
     mp->min = mp->pool + sizeof(struct _mblk);
     mp->max = mp->pool + size - MBLK_MIN;
-    ((mblk)mp->pool)->flags = 0;
-    ((mblk)mp->pool)->size = size;
-    ((mblk)mp->pool)->signature = MBLK_SIGNATURE;
+
+    mp_release( mp );
     return mp;
+}
+
+void mp_release(mpool mp)
+{
+    memset( ((mblk)mp->pool), 0, mp->size );
+    ((mblk)mp->pool)->flags = 0;
+    ((mblk)mp->pool)->size = mp->size;
+    ((mblk)mp->pool)->signature = MBLK_SIGNATURE;
 }
 
 void mp_destroy(mpool mp) {

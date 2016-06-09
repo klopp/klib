@@ -71,6 +71,7 @@ typedef struct _mpool {
 typedef void (*mp_walker)(const mpool mp, const mblk mb, void *data);
 
 mpool mp_create(size_t size, mp_flags flags);
+void mp_release(mpool mp);
 void mp_destroy(mpool mp);
 
 void *mp_alloc(mpool mp, size_t size);
