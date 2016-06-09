@@ -15,84 +15,82 @@ extern "C"
 {
 #endif
 
-typedef struct _LNode
-{
-    void * data;
-    struct _LNode * next;
-    struct _LNode * prev;
-}*LNode;
+typedef struct _LNode {
+    void *data;
+    struct _LNode *next;
+    struct _LNode *prev;
+} *LNode;
 
-typedef void (*L_destructor)( void * data );
-typedef void (*L_walk)( void * data );
+typedef void (*L_destructor)(void *data);
+typedef void (*L_walk)(void *data);
 
-typedef struct _List
-{
+typedef struct _List {
     LNode head;
     LNode tail;
     LNode cursor;
     L_destructor destructor;
     size_t size;
     int lock;
-}*List;
+} *List;
 
-List lcreate( L_destructor destructor );
-void ldestroy( List list );
+List lcreate(L_destructor destructor);
+void ldestroy(List list);
 /*
  * lclear() remove all list elements
  */
-void lclear( List list );
+void lclear(List list);
 /*
  * ladd() add data to list TAIL
  */
-void * ladd( List list, void * data );
+void *ladd(List list, void *data);
 /*
  * lpoke() add data to list HEAD
  */
-void * lpoke( List list, void * data );
+void *lpoke(List list, void *data);
 /*
  * ltail() peek data from list TAIL
  */
-void * ltail( List list );
+void *ltail(List list);
 /*
  * lhead() peek data from list HEAD
  */
-void * lhead( List list );
+void *lhead(List list);
 /*
  * lgettail() extract data from list TAIL
  * (data is not destroyed)
  */
-void * lgettail( List list );
+void *lgettail(List list);
 /*
  * lgethead() extract data from list HEAD
  * (data is not destroyed)
  */
-void * lgethead( List list );
+void *lgethead(List list);
 /*
  * ldeltail() delete data from list TAIL
  * and destroy it
  */
-void ldeltail( List list );
+void ldeltail(List list);
 /*
  * ldelhead() delete data from list HEAD
  * and destroy it
  */
-void ldelhead( List list );
+void ldelhead(List list);
 
 /*
  * lfirst() set internal cursor to first list
  * element and return it data
  */
-void * lfirst( List list );
+void *lfirst(List list);
 /*
  * lnext() move internal cursor to next list
  * element and return it data
  */
-void * lnext( List list );
+void *lnext(List list);
 /*
  * lwalk() call function 'walker' for data of
  * all list elements
  */
-void lwalk( List list, L_walk walker );
+void lwalk(List list, L_walk walker);
 
 /*
  * Queue stuff:

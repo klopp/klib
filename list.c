@@ -11,21 +11,23 @@
 
 List lcreate(L_destructor destructor) {
     List list = Calloc(sizeof(struct _List), 1);
-    if (!list)
+    if(!list) {
         return NULL;
+    }
     list->destructor = destructor;
     return list;
 }
 
 void lclear(List list) {
-    if (list) {
+    if(list) {
         _lock(&list->lock);
         LNode node = list->head;
-        while (node) {
+        while(node) {
             LNode current = node;
             node = node->next;
-            if (list->destructor && current->data)
+            if(list->destructor && current->data) {
                 list->destructor(current->data);
+            }
             Free(current);
         }
         list->head = list->tail = list->cursor = NULL;
@@ -39,19 +41,18 @@ void ldestroy(List list) {
     Free(list);
 }
 
-void * ladd(List list, void * data) {
-    if (list && data) {
+void *ladd(List list, void *data) {
+    if(list && data) {
         _lock(&list->lock);
         LNode node = Calloc(sizeof(struct _LNode), 1);
-        if (!node) {
+        if(!node) {
             _unlock(list->lock);
             return NULL;
         }
         node->data = data;
-        if (!list->head) {
+        if(!list->head) {
             list->head = list->tail = node;
-        }
-        else {
+        } else {
             node->prev = list->tail;
             list->tail->next = node;
             list->tail = list->tail->next;
@@ -63,19 +64,18 @@ void * ladd(List list, void * data) {
     return NULL;
 }
 
-void * lpoke(List list, void * data) {
-    if (list && data) {
+void *lpoke(List list, void *data) {
+    if(list && data) {
         _lock(&list->lock);
         LNode node = Calloc(sizeof(struct _LNode), 1);
-        if (!node) {
+        if(!node) {
             _unlock(list->lock);
             return NULL;
         }
         node->data = data;
-        if (!list->head) {
+        if(!list->head) {
             list->head = list->tail = node;
-        }
-        else {
+        } else {
             node->next = list->head;
             list->head->prev = node;
             list->head = node;
@@ -87,25 +87,27 @@ void * lpoke(List list, void * data) {
     return NULL;
 }
 
-void * lfirst(List list) {
-    if (!list)
+void *lfirst(List list) {
+    if(!list) {
         return NULL;
+    }
     list->cursor = list->head;
     return list->cursor ? list->cursor->data : NULL;
 }
 
-void * lnext(List list) {
-    if (!list || !list->cursor)
+void *lnext(List list) {
+    if(!list || !list->cursor) {
         return NULL;
+    }
     list->cursor = list->cursor->next;
     return list->cursor ? list->cursor->data : NULL;
 }
 
 void lwalk(List list, L_walk walker) {
-    if (list && walker) {
+    if(list && walker) {
         _lock(&list->lock);
         LNode node = list->head;
-        while (node) {
+        while(node) {
             walker(node->data);
             node = node->next;
         }
@@ -113,36 +115,40 @@ void lwalk(List list, L_walk walker) {
     }
 }
 
-void * lgethead(List list) {
-    if (list && list->head) {
-        _lock( &list->lock);
-        void * data = list->head->data;
+void *lgethead(List list) {
+    if(list && list->head) {
+        _lock(&list->lock);
+        void *data = list->head->data;
         LNode node = list->head;
         list->head = list->head->next;
         Free(node);
-        if (list->head)
+        if(list->head) {
             list->head->prev = NULL;
+        }
         list->size--;
-        if (!list->size)
+        if(!list->size) {
             list->tail = NULL;
+        }
         _unlock(list->lock);
         return data;
     }
     return NULL;
 }
 
-void * lgettail(List list) {
-    if (list && list->tail) {
-        _lock( &list->lock);
-        void * data = list->tail->data;
+void *lgettail(List list) {
+    if(list && list->tail) {
+        _lock(&list->lock);
+        void *data = list->tail->data;
         LNode node = list->tail;
         list->tail = list->tail->prev;
         Free(node);
-        if (list->tail)
+        if(list->tail) {
             list->tail->next = NULL;
+        }
         list->size--;
-        if (!list->size)
+        if(!list->size) {
             list->head = NULL;
+        }
         _unlock(list->lock);
         return data;
     }
@@ -150,21 +156,23 @@ void * lgettail(List list) {
 }
 
 void ldeltail(List list) {
-    void * data = lgettail(list);
-    if (data && list->destructor)
+    void *data = lgettail(list);
+    if(data && list->destructor) {
         list->destructor(data);
+    }
 }
 
 void ldelhead(List list) {
-    void * data = lgethead(list);
-    if (data && list->destructor)
+    void *data = lgethead(list);
+    if(data && list->destructor) {
         list->destructor(data);
+    }
 }
 
-void * ltail(List list) {
+void *ltail(List list) {
     return (list && list->tail) ? list->tail->data : NULL;
 }
-void * lhead(List list) {
+void *lhead(List list) {
     return (list && list->head) ? list->head->data : NULL;
 }
 

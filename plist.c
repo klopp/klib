@@ -7,49 +7,41 @@
 
 #include "plist.h"
 
-void pair_Delete( void * ptr )
-{
-    if( ptr )
-    {
+void pair_Delete(void *ptr) {
+    if(ptr) {
         Pair pair = (Pair)ptr;
-        Free( pair->first );
-        Free( pair->second );
-        Free( pair );
+        Free(pair->first);
+        Free(pair->second);
+        Free(pair);
     }
 }
 
-const char * plget( PList list, const char * key )
-{
+const char *plget(PList list, const char *key) {
     char c = key[0];
-    Pair pair = plfirst( list );
-    while( pair )
-    {
-        if( c == pair->first[0] && !strcmp( key, pair->first ) ) return pair->second;
-        pair = plnext( list );
+    Pair pair = plfirst(list);
+    while(pair) {
+        if(c == pair->first[0] && !strcmp(key, pair->first)) {
+            return pair->second;
+        }
+        pair = plnext(list);
     }
     return NULL;
 }
 
-Pair pair_Create( const char * first, const char * second )
-{
-    Pair pair = Calloc( sizeof(struct _Pair), 1 );
-    if( pair )
-    {
-        if( first )
-        {
-            pair->first = Strdup( first );
-            if( !pair->first )
-            {
-                pair_Delete( pair );
+Pair pair_Create(const char *first, const char *second) {
+    Pair pair = Calloc(sizeof(struct _Pair), 1);
+    if(pair) {
+        if(first) {
+            pair->first = Strdup(first);
+            if(!pair->first) {
+                pair_Delete(pair);
                 return NULL;
             }
         }
-        if( second )
-        {
-            pair->second = Strdup( second );
-            if( !pair->second )
-            {
-                pair_Delete( pair );
+        if(second) {
+            pair->second = Strdup(second);
+            if(!pair->second) {
+                pair_Delete(pair);
                 return NULL;
             }
         }
@@ -57,14 +49,12 @@ Pair pair_Create( const char * first, const char * second )
     return pair;
 }
 
-PList plcreate( void )
-{
-    return lcreate( pair_Delete );
+PList plcreate(void) {
+    return lcreate(pair_Delete);
 }
 
-Pair pladd( List list, const char * first, const char * second )
-{
-    Pair pair = pair_Create( first, second );
-    return pair ? ladd( list, pair ) : NULL;
+Pair pladd(List list, const char *first, const char *second) {
+    Pair pair = pair_Create(first, second);
+    return pair ? ladd(list, pair) : NULL;
 }
 

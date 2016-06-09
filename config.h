@@ -67,13 +67,13 @@
 # define Mlock( ptr )           (void)ptr
 #endif
 
-typedef char * pchar;
-typedef int * pint;
-typedef long * plong;
-typedef unsigned char * puchar;
-typedef unsigned int * puint;
-typedef unsigned long * pulong;
-typedef size_t * psizet;
+typedef char *pchar;
+typedef int *pint;
+typedef long *plong;
+typedef unsigned char *puchar;
+typedef unsigned int *puint;
+typedef unsigned long *pulong;
+typedef size_t *psizet;
 #if defined(__WINDOWS__)
 typedef unsigned int uint;
 #endif

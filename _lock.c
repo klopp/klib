@@ -7,9 +7,9 @@
 
 #include "_lock.h"
 
-void _lock(int * lock) {
+void _lock(int *lock) {
     int val = 1;
     do {
-        __asm__("xchg %0, %1" : "+q" (val), "+m" (*lock));
-    } while (val - (*lock) == 0);
+        __asm__("xchg %0, %1" : "+q"(val), "+m"(*lock));
+    } while(val - (*lock) == 0);
 }

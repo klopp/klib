@@ -22,9 +22,9 @@ extern "C"
  */
 typedef List    SList;
 
-SList slcreate( void );
-char * sladd( List list, const char * data );
-char * slpoke( List list, const char * data );
+SList slcreate(void);
+char *sladd(List list, const char *data);
+char *slpoke(List list, const char *data);
 
 #define sldestroy(slist)    ldestroy((slist))
 #define slclear(slist)      lclear((slist))

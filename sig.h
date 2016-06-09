@@ -16,16 +16,15 @@ extern "C"
 {
 #endif
 
-typedef struct _SigNames
-{
+typedef struct _SigNames {
     int signo;
-    const char * signame;
+    const char *signame;
 } *SigNames;
 
-const char * signal_name( int signo );
-const SigNames signal_names( void );
-void signal_ign_all( void  );
-void signal_def_all( void  );
+const char *signal_name(int signo);
+const SigNames signal_names(void);
+void signal_ign_all(void);
+void signal_def_all(void);
 
 #ifdef __cplusplus
 }

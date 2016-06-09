@@ -28,8 +28,8 @@ extern "C"
 #define _ST_ARG_MAX     0x400
 #define _ST_RET_MAX     0x100
 
-typedef void (*st_dumper)(const char * ret, const char * name, const char * arg,
-        const char * file, unsigned line, FILE * handle);
+typedef void (*st_dumper)(const char *ret, const char *name, const char *arg,
+                          const char *file, unsigned line, FILE *handle);
 /*
  * dumper:
  *   if NULL default dumper will be used
@@ -41,13 +41,13 @@ typedef void (*st_dumper)(const char * ret, const char * name, const char * arg,
  *   1 - print line numbers (1, 2, 3 ...)
  *   2 - print line numbers with dot (1., 2., 3. ...)
  */
-void st_dump(const st_dumper dumper, FILE * file, const char * tab, int numbers);
+void st_dump(const st_dumper dumper, FILE *file, const char *tab, int numbers);
 
 /*
  * internal functions:
  */
-size_t _st_push(const char * ret, const char * name, const char * arg,
-        const char * file, unsigned line);
+size_t _st_push(const char *ret, const char *name, const char *arg,
+                const char *file, unsigned line);
 void _st_pop(void);
 void _st_init(void);
 
