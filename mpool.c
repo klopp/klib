@@ -7,7 +7,6 @@
 
 #include "mpool.h"
 #include <string.h>
-#include <math.h>
 
 /*
  * mpool.pool structure:
