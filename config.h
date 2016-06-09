@@ -94,5 +94,7 @@ typedef unsigned int uint;
 
 #define lmbd(c_) ({ c_ _;})
 
+#define rnd_range(min,max) (min + rand() % (max - min))
+
 
 #endif /* CONFIG_H_ */
