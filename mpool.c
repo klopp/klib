@@ -105,10 +105,6 @@ mpool mp_create(size_t size, mp_flags flags) {
     mpool mp;
     size = (size ? size : MPOOL_MIN);
     MS_ALIGN(size, MPOOL_MIN);
-    if(!_mp_atexit) {
-        _mp_atexit = 1;
-        atexit(_mp_destroy);
-    }
     if((flags & MP_EXPAND) != MP_EXPAND) {
         mp = _mp_malloc(sizeof(struct _mpool) + size + sizeof(struct _mblk));
         if(!mp) {
@@ -125,6 +121,11 @@ mpool mp_create(size_t size, mp_flags flags) {
             free(mp);
             return NULL;
         }
+    }
+
+    if(!_mp_atexit) {
+        _mp_atexit = 1;
+        atexit(_mp_destroy);
     }
 
     mp->id = 0;
