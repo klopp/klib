@@ -32,8 +32,6 @@ extern "C"
  */
 #define MP_EXPAND_FOR(sz)   ((sz) + ((sz) / 2))
 
-#define MP_USE_LOCKING  1
-
 #pragma pack(1)
 
 typedef enum _mb_flags
@@ -76,15 +74,12 @@ void mp_destroy(mpool mp);
 
 void *mp_alloc(mpool mp, size_t size);
 void *mp_calloc(mpool mp, size_t size, size_t n);
+char *mp_strdup(mpool mp, const char *src);
+void *mp_realloc(mpool mp, void *src, size_t size);
 
-#if MP_USE_LOCKING
 int mp_lock(mpool mp, void *ptr);
 int mp_locked(mpool mp, void *ptr);
 int mp_unlock(mpool mp, void *ptr);
-#endif
-
-char *mp_strdup(mpool mp, const char *src);
-void *mp_realloc(mpool mp, void *src, size_t size);
 
 int mp_free(mpool mp, void *ptr);
 

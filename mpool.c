@@ -307,7 +307,6 @@ void *mp_alloc(mpool mp, size_t size) {
     return ptr;
 }
 
-#if MP_USE_LOCKING
 int mp_lock(mpool mp, void *ptr) {
     MP_SET(mp);
     if(_mp_valid_ptr(ptr, mp)) {
@@ -335,16 +334,13 @@ int mp_locked(mpool mp, void *ptr) {
     return _mp_valid_ptr(ptr, mp) ?
            ((((struct _mblk *) ptr) - 1)->flags & MB_LOCKED) : 0;
 }
-#endif
 
 void *mp_realloc(mpool mp, void *src, size_t size) {
     void *dest;
     MP_SET(mp);
     dest = NULL;
     if(_mp_valid_ptr(src, mp)) {
-#if MP_USE_LOCKING
         if(!((((struct _mblk *) src) - 1)->flags & MB_LOCKED)) {
-#endif
             dest = mp_alloc(mp, size);
             if(dest) {
                 size_t tomove = (((struct _mblk *) src) - 1)->size;
@@ -354,9 +350,7 @@ void *mp_realloc(mpool mp, void *src, size_t size) {
                 memcpy(dest, src, tomove);
                 mp_free(mp, src);
             }
-#if MP_USE_LOCKING
         }
-#endif
     }
     return dest;
 }
@@ -369,11 +363,9 @@ int mp_free(mpool mp, void *ptr) {
     if(!MP_VALID(ptr, mp)) {
         return mp_free(mp->next, ptr);
     }
-#if MP_USE_LOCKING
     if((((struct _mblk *) ptr) - 1)->flags & MB_LOCKED) {
         return 0;
     }
-#endif
     if((((struct _mblk *) ptr) - 1)->flags & MB_BUSY) {
         mp->flags |= MP_DIRTY;
     }
