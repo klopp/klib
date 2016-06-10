@@ -146,13 +146,13 @@ void mp_release(mpool mp) {
 
 void mp_destroy(mpool mp) {
     if(mp) {
+        mp_release(mp);
         if((mp->flags & MP_EXPAND) == MP_EXPAND) {
             free(mp->pool);
         }
         if(mp->next) {
             mp_destroy(mp->next);
         }
-        mp_release(mp);
         free(mp);
     }
 }
