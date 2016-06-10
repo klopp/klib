@@ -138,7 +138,20 @@ mpool mp_create(size_t size, mp_flags flags) {
 
 void mp_release(mpool mp) {
     MP_SET(mp);
+#ifdef DEBUG
+    do {
+        size_t i = 0;
+        char *ptr = (char *)((mblk) mp->pool);
+        while(i < mp->size / 4) {
+            *(long *)ptr = 0xDEADBEEF;
+            ptr += 4;
+            i++;
+        }
+    }
+    while(0);
+#else
     memset(((mblk) mp->pool), 0, mp->size);
+#endif
     ((mblk) mp->pool)->flags = 0;
     ((mblk) mp->pool)->size = mp->size;
     ((mblk) mp->pool)->signature = MBLK_SIGNATURE;
