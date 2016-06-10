@@ -83,6 +83,7 @@ static mblk MB_NEXT(mblk mb) {
 static mpool _mp = NULL;
 static int _mp_atexit = 0;
 static void _mp_destroy(void) {
+    unused(_mp);
     mp_destroy(_mp);
 }
 
