@@ -96,7 +96,8 @@ void _st_pop(void) {
     _lock(&_st_lock);
     if(_st_over) {
         _st_over--;
-    } else {
+    }
+    else {
         Free(spop(_st_stack));
     }
     _unlock(_st_lock);

@@ -52,7 +52,8 @@ void *ladd(List list, void *data) {
         node->data = data;
         if(!list->head) {
             list->head = list->tail = node;
-        } else {
+        }
+        else {
             node->prev = list->tail;
             list->tail->next = node;
             list->tail = list->tail->next;
@@ -75,7 +76,8 @@ void *lpoke(List list, void *data) {
         node->data = data;
         if(!list->head) {
             list->head = list->tail = node;
-        } else {
+        }
+        else {
             node->next = list->head;
             list->head->prev = node;
             list->head = node;
