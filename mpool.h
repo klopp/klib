@@ -21,9 +21,9 @@ extern "C"
 #define MBLK_SIGNATURE  0x1515
 #define MBLK_MIN        (sizeof(struct _mblk))
 #if defined(DEBUG)
-# define MPOOL_MIN      32
+# define MPOOL_MIN      (1024*64)
 #else
-# define MPOOL_MIN      (1024*16)
+# define MPOOL_MIN      (1024*1024)
 #endif
 
 /*
