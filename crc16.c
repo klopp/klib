@@ -34,29 +34,9 @@ static unsigned short _crc_16_table[256] = { 0x0000, 0x8005, 0x800F, 0x000A,
         0x825D, 0x8257, 0x0252, 0x0270, 0x8275, 0x827F, 0x027A, 0x826B, 0x026E,
         0x0264, 0x8261, 0x0220, 0x8225, 0x822F, 0x022A, 0x823B, 0x023E, 0x0234,
         0x8231, 0x8213, 0x0216, 0x021C, 0x8219, 0x0208, 0x820D, 0x8207, 0x0202 };
-/*
- static void _make_crc16_table(void) {
- unsigned short r, i, j;
- for (i = 0; i < 256; i++) {
- r = ((unsigned short) i) << 8;
- for (j = 0; j < 8; j++) {
- if (r & (1 << 15))
- r = (r << 1) ^ 0x8005;
- else
- r = r << 1;
- }
- _crc_16_table[i] = r;
- }
- }
- */
 
 unsigned short crc16(const char *buf, size_t len) {
     unsigned short crc = 0xFFFF;
-    /*
-     if (_crc_16_table[0] == 0xFFFF) {
-     _make_crc16_table();
-     }
-     */
     while (len--) {
         crc = _crc_16_table[((crc >> 8) ^ *buf++) & 0xFF] ^ (crc << 8);
     }
