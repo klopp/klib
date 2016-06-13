@@ -1,14 +1,6 @@
 /*
  * sha256.c
  *
- *  Created on: 13 июня 2016 г.
- *      Author: Vsevolod Lutovinov <klopp@yandex.ru>
- */
-
-
-/*
- * sha256.c
- *
  *  Created on: 12 июня 2016 г.
  *      Author: Vsevolod Lutovinov <klopp@yandex.ru>
  */
