@@ -65,7 +65,7 @@ static void _transform( SHA256 *sha256, const unsigned char *message,
 
 SHA256 *sha256_init( SHA256 *sha256 ) {
     if( !sha256 ) {
-        sha256 = malloc( sizeof( SHA256 ) );
+        sha256 = Malloc( sizeof( SHA256 ) );
     }
     if( sha256 ) {
         sha256->m_h[0] = 0x6a09e667;
@@ -111,7 +111,7 @@ unsigned char *sha256_finalize( SHA256 *sha256, unsigned char *digest ) {
     unsigned int len_b;
     int i;
     if( !digest ) {
-        digest = malloc( SHA256_DIGEST_SIZE );
+        digest = Malloc( SHA256_DIGEST_SIZE );
     }
     if( digest ) {
         memset( digest, 0, SHA256_DIGEST_SIZE );
