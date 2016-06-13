@@ -24,7 +24,7 @@ typedef struct {
 
 static Stack _st_stack = NULL;
 static size_t _st_over = 0;
-int _st_lock = 0;
+static volatile int _st_lock = 0;
 
 /* ---------------------------------------------------------------------------*/
 static void _st_signal( int signo ) {
