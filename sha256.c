@@ -3,6 +3,7 @@
  *
  *  Created on: 12 июня 2016 г.
  *      Author: Vsevolod Lutovinov <klopp@yandex.ru>
+ *  Source code: http://www.zedwood.com/article/cpp-sha256-function
  */
 
 #include "sha256.h"
