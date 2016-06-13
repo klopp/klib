@@ -8,7 +8,7 @@
 #ifndef LOCK_H_
 #define LOCK_H_
 
-void _lock(int *lock);
+void _lock(volatile int *lock);
 #define _unlock( lock ) lock = 0
 
 
