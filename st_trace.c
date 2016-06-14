@@ -53,7 +53,7 @@ static void _st_down( void ) {
 /* ---------------------------------------------------------------------------*/
 void _st_init( void ) {
     if( !_st_stack ) {
-        _st_stack = screate( l_free );
+        _st_stack = screate( list_Free );
         atexit( _st_down );
         signal( SIGSEGV, _st_signal );
         signal( SIGABRT, _st_signal );

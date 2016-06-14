@@ -36,7 +36,7 @@ typedef struct _List {
 /*
  * Free() wrapper:
  */
-void l_free( void *data );
+void list_Free( void *data );
 
 List lcreate( L_destructor destructor );
 void ldestroy( List list );

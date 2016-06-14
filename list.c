@@ -9,7 +9,7 @@
 
 #include "_lock.h"
 
-void l_free( void *data ) {
+void list_Free( void *data ) {
     Free( data );
 }
 
