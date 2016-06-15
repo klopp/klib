@@ -5,9 +5,10 @@
 
 #include "trycatch.h"
 
-jmp_buf CTRYCATCH_NAME(env);
-CTRYCATCH_NAME(types) CTRYCATCH_NAME(type);
-char *CTRYCATCH_NAME(msg);
+jmp_buf __ex_env[TRYCATCH_MAX];
+__ex_types __ex_type = Exception;
+char *__ex_msg = ( char * )0;
+unsigned int __ex_idx = 0;
 
 /*
  *  That's All, Folks!
