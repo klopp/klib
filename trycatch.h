@@ -12,14 +12,12 @@ extern "C" {
 #endif
 
 #include <setjmp.h>
+#include <assert.h>
 
-#define TRYCATCH_MAX    16
-
-#define TRYCATCH_CAT(a, ...) TRYCATCH_PRIMITIVE_CAT(a, __VA_ARGS__)
-#define TRYCATCH_PRIMITIVE_CAT(a, ...) a ## __VA_ARGS__
+#define TRYCATCH_MAX    32
 
 #define try \
-    __ex_idx++; if(!(__ex_type[__ex_idx-1] = setjmp(__ex_env[__ex_idx-1])))
+    assert(__ex_idx < TRYCATCH_MAX); __ex_idx++; if(!(__ex_type[__ex_idx-1] = setjmp(__ex_env[__ex_idx-1])))
 
 #define catch(X) \
     else if((X+Exception) == Exception || __ex_type[__ex_idx-1] == (X+Exception))
@@ -40,7 +38,6 @@ typedef enum {
      *   DO NOT modify this line.
      */
     Exception,
-
 #include "trycatch.conf"
 }
 __ex_types;
