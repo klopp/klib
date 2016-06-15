@@ -19,10 +19,10 @@ extern "C" {
 #define TRYCATCH_PRIMITIVE_CAT(a, ...) a ## __VA_ARGS__
 
 #define try \
-    if(!(__ex_type = setjmp(__ex_env[__ex_idx++])))
+    __ex_idx++; if(!(__ex_type[__ex_idx-1] = setjmp(__ex_env[__ex_idx-1])))
 
 #define catch(X) \
-    else if((X +0) == 0 || __ex_type == (X +0))
+    else if((X +0) == 0 || __ex_type[__ex_idx] == (X +0))
 
 #define finally
 
@@ -45,7 +45,7 @@ __ex_types;
 extern char *__ex_msgs[];
 extern jmp_buf __ex_env[];
 extern unsigned int __ex_idx;
-extern __ex_types __ex_type;
+extern __ex_types __ex_type[];
 
 #if defined(__cplusplus)
 }; /* extern "C" */

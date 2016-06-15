@@ -7,8 +7,8 @@
 #include "trycatch.h"
 
 jmp_buf __ex_env[TRYCATCH_MAX];
-__ex_types __ex_type = Exception;
-char *__ex_msgs[TRYCATCH_MAX] = { ( char * )0};
+__ex_types  __ex_type[TRYCATCH_MAX] = { Exception };
+char *__ex_msgs[TRYCATCH_MAX] = { ( char * ) 0 };
 unsigned int __ex_idx = 0;
 
 /*
