@@ -13,7 +13,7 @@ extern "C" {
 
 #include <setjmp.h>
 
-#define TRYCATCH_MAX    16
+#define TRYCATCH_MAX    64
 
 #define TRYCATCH_CAT(a, ...) TRYCATCH_PRIMITIVE_CAT(a, __VA_ARGS__)
 #define TRYCATCH_PRIMITIVE_CAT(a, ...) a ## __VA_ARGS__
@@ -44,8 +44,8 @@ __ex_types;
 
 extern char *__ex_msgs[];
 extern jmp_buf __ex_env[];
-extern unsigned int __ex_idx;
 extern __ex_types __ex_type[];
+extern unsigned int __ex_idx;
 
 #if defined(__cplusplus)
 }; /* extern "C" */
