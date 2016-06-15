@@ -17,13 +17,14 @@ extern "C" {
 #define TRYCATCH_MAX    32
 
 #define try \
-    assert(__ex_idx < TRYCATCH_MAX); __ex_idx++; if(!(__ex_type[__ex_idx-1] = setjmp(__ex_env[__ex_idx-1])))
+    assert(__ex_idx < TRYCATCH_MAX); __ex_idx++; \
+        if(!(__ex_type[__ex_idx-1] = setjmp(__ex_env[__ex_idx-1])))
 
 #define catch(X) \
-    else if((X+Exception) == Exception || __ex_type[__ex_idx-1] == (X+Exception))
+    else if(((X)+Exception) == Exception || __ex_type[__ex_idx-1] == ((X)+Exception))
 
 #define throw(X,...) \
-    __ex_msgs[__ex_idx-1] = (__VA_ARGS__  + 0), longjmp(__ex_env[__ex_idx-1], (X))
+    __ex_msgs[__ex_idx-1] = (__VA_ARGS__+0), longjmp(__ex_env[__ex_idx-1], (X))
 
 /*
  *  finally block MUST be called, always!
@@ -33,11 +34,7 @@ extern "C" {
 #define __ex_msg __ex_msgs[__ex_idx-1]
 
 typedef enum {
-    /*
-     *   Caution: 0 **IS** defined as "no error" to make it work.
-     *   DO NOT modify this line.
-     */
-    Exception,
+    Exception = 0,
 #include "trycatch.conf"
 }
 __ex_types;
