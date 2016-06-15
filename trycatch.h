@@ -13,7 +13,7 @@ extern "C" {
 
 #include <setjmp.h>
 
-#define TRYCATCH_MAX    64
+#define TRYCATCH_MAX    16
 
 #define TRYCATCH_CAT(a, ...) TRYCATCH_PRIMITIVE_CAT(a, __VA_ARGS__)
 #define TRYCATCH_PRIMITIVE_CAT(a, ...) a ## __VA_ARGS__
@@ -22,14 +22,17 @@ extern "C" {
     __ex_idx++; if(!(__ex_type[__ex_idx-1] = setjmp(__ex_env[__ex_idx-1])))
 
 #define catch(X) \
-    else if((X +0) == 0 || __ex_type[__ex_idx] == (X +0))
-
-#define finally
+    else if((X+Exception) == Exception || __ex_type[__ex_idx-1] == (X+Exception))
 
 #define throw(X,...) \
-    __ex_msgs[__ex_idx-1] = (__VA_ARGS__  +0), longjmp(__ex_env[--__ex_idx], (X))
+    __ex_msgs[__ex_idx-1] = (__VA_ARGS__  + 0), longjmp(__ex_env[__ex_idx-1], (X))
 
-#define __ex_msg __ex_msgs[__ex_idx]
+/*
+ *  finally block MUST be called, always!
+ */
+#define finally __ex_idx--;
+
+#define __ex_msg __ex_msgs[__ex_idx-1]
 
 typedef enum {
     /*
