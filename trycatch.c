@@ -1,6 +1,7 @@
 /*
  *  Created on: 15 июня 2016 г.
  *      Author: Vsevolod Lutovinov <klopp@yandex.ru>
+ *  Based on: https://github.com/Jamesits/CTryCatch
  */
 
 #include "trycatch.h"

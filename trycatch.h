@@ -1,11 +1,9 @@
 /*
  *  Created on: 15 июня 2016 г.
  *      Author: Vsevolod Lutovinov <klopp@yandex.ru>
+ *  Based on: https://github.com/Jamesits/CTryCatch
  */
 
-/*
- *  That's All, Folks!
- */
 #ifndef TRYCATCH_H_
 #define TRYCATCH_H_
 
@@ -53,3 +51,7 @@ extern __ex_types __ex_type;
 
 
 #endif /* TRYCATCH_H_ */
+
+/*
+ *  That's All, Folks!
+ */
