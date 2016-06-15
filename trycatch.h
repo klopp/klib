@@ -27,7 +27,9 @@ extern "C" {
 #define finally
 
 #define throw(X,...) \
-    __ex_msg = (__VA_ARGS__  +0), longjmp(__ex_env[--__ex_idx], (X))
+    __ex_msgs[__ex_idx-1] = (__VA_ARGS__  +0), longjmp(__ex_env[--__ex_idx], (X))
+
+#define __ex_msg __ex_msgs[__ex_idx]
 
 typedef enum {
     /*
@@ -40,7 +42,7 @@ typedef enum {
 }
 __ex_types;
 
-extern char *__ex_msg;
+extern char *__ex_msgs[];
 extern jmp_buf __ex_env[];
 extern unsigned int __ex_idx;
 extern __ex_types __ex_type;
