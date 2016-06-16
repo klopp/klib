@@ -29,9 +29,9 @@ extern "C" {
 /*
  *  finally block MUST be called, always!
  */
-#define finally __ex_idx--;
+#define finally assert(__ex_idx); __ex_idx--
 
-#define __ex_msg __ex_msgs[__ex_idx-1]
+#define __ex_msg ((__ex_idx && __ex_idx < TRYCATCH_MAX) ? __ex_msgs[__ex_idx-1] : (const char *)0)
 
 typedef enum {
     Exception = 0,
@@ -39,7 +39,7 @@ typedef enum {
 }
 __ex_types;
 
-extern char *__ex_msgs[];
+extern const char *__ex_msgs[];
 extern jmp_buf __ex_env[];
 extern __ex_types __ex_type[];
 extern unsigned int __ex_idx;
