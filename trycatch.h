@@ -12,6 +12,34 @@ extern "C" {
 #endif
 
 #include <setjmp.h>
+
+typedef enum {
+    Exception = 0,
+#include "trycatch.conf"
+}
+__ex_types;
+
+#define __ex_with_msg   __ex_have_msg
+
+#ifndef TRYCATCH_NESTED
+
+#define try             if(!(__ex_type = setjmp(__ex_env)))
+
+#define catch(X)        else if(((X)+Exception) == Exception || \
+                            __ex_type == ((X)+Exception))
+
+#define throw(X,...)    __ex_msg = (__VA_ARGS__+0), longjmp(__ex_env, (X))
+
+#define finally
+
+#define __ex_have_msg   __ex_msg
+
+extern const char *__ex_msg;
+extern jmp_buf __ex_env;
+extern __ex_types __ex_type;
+
+#else
+
 #include <assert.h>
 
 #define TRYCATCH_MAX    32
@@ -42,20 +70,14 @@ extern "C" {
 # define __ex_have_msg __ex_msgs[__ex_idx-1]
 #endif
 
-#define __ex_with_msg   __ex_have_msg
-
 #define __ex_msg        __ex_msgs[__ex_idx-1]
-
-typedef enum {
-    Exception = 0,
-#include "trycatch.conf"
-}
-__ex_types;
 
 extern const char *__ex_msgs[];
 extern jmp_buf __ex_env[];
 extern __ex_types __ex_type[];
 extern unsigned int __ex_idx;
+
+#endif
 
 #if defined(__cplusplus)
 }; /* extern "C" */
