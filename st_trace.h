@@ -20,7 +20,7 @@ extern "C"
 #include <string.h>
 #include "va_arg.h"
 
-#define return(...)    JOIN(return,__VA_NARG__(__VA_ARGS__))(__VA_ARGS__)
+#define _return(...)    JOIN(return,__VA_NARG__(__VA_ARGS__))(__VA_ARGS__)
 
 #define _ST_MAX         0x400
 #define _ST_FILE_MAX    PATH_MAX
