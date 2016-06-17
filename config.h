@@ -67,23 +67,7 @@
 # define Mlock( ptr )           (void)ptr
 #endif
 
-typedef char *pchar;
-typedef int *pint;
-typedef long *plong;
-typedef unsigned char *puchar;
-typedef unsigned int *puint;
-typedef unsigned long *pulong;
-typedef size_t *psizet;
-#if defined(__WINDOWS__)
-typedef unsigned int uint;
-#endif
-
 #define forever()       for(;;)
-#define is              ==
-#define isnot           !=
-#define not             !
-#define and             &&
-#define or              ||
 #define unused( var )   ((void)var)
 
 #define lambda(return_type, function_body) \
