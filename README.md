@@ -1,12 +1,13 @@
-# trycatch
+# trycatch.h
 
 ## #define TRYCATCH_NESTING Some_value
 
     try {
-        /* upo to TRYCATCH_NESTING levels */ 
+        /* up to TRYCATCH_NESTING levels */ 
         try {
             throw( NotImplementedException );
         }
+        /* see trycatch.conf for all valid values */
         catch( NotImplementedException ) {
             printf( "NotImplementedException\n" );
         }
