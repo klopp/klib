@@ -65,10 +65,9 @@
     static f_start( int, sum, (int a, int b) )
         st_dump(NULL, NULL, " ", 2 );
         _return( a + b);
-    }```
-```c
-    _main()
+    }
 
+    _main()
         int rc = sum( 1, -1 );
         _return( rc );
     }
