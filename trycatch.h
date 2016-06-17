@@ -7,6 +7,8 @@
 #ifndef TRYCATCH_H_
 #define TRYCATCH_H_
 
+#define TRYCATCH_NESTING    32
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -17,11 +19,11 @@ typedef enum {
     Exception = 0,
 #include "trycatch.conf"
 }
-__ex_types;
+__exeption_types;
 
 #define __ex_with_msg   __ex_have_msg
 
-#ifndef TRYCATCH_NESTED
+#ifndef TRYCATCH_NESTING
 
 #define try             if(!(__ex_type = setjmp(__ex_env)))
 
@@ -36,21 +38,19 @@ __ex_types;
 
 extern const char *__ex_msg;
 extern jmp_buf __ex_env;
-extern __ex_types __ex_type;
+extern __exeption_types __ex_type;
 
 #else
 
 #include <assert.h>
 
-#define TRYCATCH_MAX    32
-
 #define try \
-        assert(__ex_idx < TRYCATCH_MAX); __ex_idx++; \
-            if(!(__ex_type[__ex_idx-1] = setjmp(__ex_env[__ex_idx-1])))
+        assert(__ex_idx < TRYCATCH_NESTING); __ex_idx++; \
+            if(!(__ex_types[__ex_idx-1] = setjmp(__ex_env[__ex_idx-1])))
 
 #define catch(X) \
         else if(((X)+Exception) == Exception || \
-                __ex_type[__ex_idx-1] == ((X)+Exception))
+                __ex_types[__ex_idx-1] == ((X)+Exception))
 
 #define throw(X,...) \
         __ex_msgs[__ex_idx-1] = (__VA_ARGS__+0), \
@@ -60,21 +60,22 @@ extern __ex_types __ex_type;
  *  finally block MUST be called, always!
  */
 #define finally \
-        assert(__ex_idx); __ex_idx--; __ex_type[__ex_idx] = Exception; \
+        assert(__ex_idx); __ex_idx--; __ex_types[__ex_idx] = Exception; \
             __ex_msgs[__ex_idx] = (const char *)0
 
 #if defined(NDEBUG)
-# define __ex_have_msg (__ex_idx && __ex_idx < TRYCATCH_MAX ) ? \
+# define __ex_have_msg (__ex_idx && __ex_idx < TRYCATCH_NESTING ) ? \
              __ex_msgs[__ex_idx-1] : 0
 #else
 # define __ex_have_msg  __ex_msgs[__ex_idx-1]
 #endif
 
 #define __ex_msg        __ex_msgs[__ex_idx-1]
+#define __ex_type       __ex_types[__ex_idx-1]
 
 extern const char *__ex_msgs[];
 extern jmp_buf __ex_env[];
-extern __ex_types __ex_type[];
+extern __exeption_types __ex_types[];
 extern unsigned int __ex_idx;
 
 #endif
