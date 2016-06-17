@@ -1,7 +1,6 @@
 # trycatch.h
 
 ## #define TRYCATCH_NESTING Some_value
-    
 ```c
     try {
     /* up to TRYCATCH_NESTING levels */ 
@@ -34,7 +33,6 @@
     }
     finally;
 ```
-
 ## #undef TRYCATCH_NESTING
 
 ```c
@@ -56,23 +54,20 @@
         printf( "Finally block, NOT required if TRYCATCH_NESTING is not set." );
     }
 ```
-
 # st_trace.h
 
 ## #undef NDEBUG
-
 ```c
     static f_start( int, sum, (int a, int b) )
         st_dump(NULL, NULL, " ", 2 );
         _return( a + b);
     }
-
+    
     _main()
         int rc = sum( 1, -1 );
         _return( rc );
     }
 ```
-
 ## Output (STDERR)
 
     1. int sum(int a, int b) at ../test-trace.c, line 14
