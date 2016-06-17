@@ -10,6 +10,6 @@
 
 #include "config.h"
 
-char *uniqid(char *storage, size_t storage_len);
+char *uniqid( char *storage, size_t storage_len );
 
 #endif /* UNIQID_H_ */

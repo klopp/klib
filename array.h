@@ -17,8 +17,8 @@ extern "C"
 {
 #endif
 
-typedef void (*A_destructor)(void *data);
-typedef void (*A_walk)(size_t idx, void *data);
+typedef void ( *A_destructor )( void *data );
+typedef void ( *A_walk )( size_t idx, void *data );
 
 typedef struct _Array {
     void **data;
@@ -26,19 +26,19 @@ typedef struct _Array {
     size_t size;
 } *Array;
 
-Array acreate(size_t size, A_destructor destructor);
-void adestroy(Array array);
+Array acreate( size_t size, A_destructor destructor );
+void adestroy( Array array );
 
-void *aset(Array array, size_t idx, void *data);
-void *aget(Array array, size_t idx);
-int adel(Array array, size_t idx);
-void awalk(Array array, A_walk walker);
+void *aset( Array array, size_t idx, void *data );
+void *aget( Array array, size_t idx );
+int adel( Array array, size_t idx );
+void awalk( Array array, A_walk walker );
 
 typedef Array   SArray;
 #define sacreate( size )    acreate( (size), free )
 
-SArray sasort(SArray array);
-void *saset(SArray array, size_t idx, const char *data);
+SArray sasort( SArray array );
+void *saset( SArray array, size_t idx, const char *data );
 
 #ifdef __cplusplus
     extern "C"

@@ -40,10 +40,10 @@ _crc_16_table[256] = {
     0x0208, 0x820D, 0x8207, 0x0202
 };
 
-unsigned short crc16(const char *buf, size_t len) {
+unsigned short crc16( const char *buf, size_t len ) {
     unsigned short crc = 0xFFFF;
-    while(len--) {
-        crc = _crc_16_table[((crc >> 8) ^ *buf++) & 0xFF] ^ (crc << 8);
+    while( len-- ) {
+        crc = _crc_16_table[( ( crc >> 8 ) ^ *buf++ ) & 0xFF] ^ ( crc << 8 );
     }
     return crc;
 }

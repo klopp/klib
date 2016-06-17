@@ -9,19 +9,19 @@
 
 static unsigned hash = 0;
 
-unsigned hash_rot13(unsigned startval, const void *buf, size_t size) {
-    for(hash = startval; size; size--) {
-        hash += *((unsigned char *)buf);
-        hash -= (hash << 13) | (hash >> 19);
-        buf = (unsigned char *)buf + 1;
+unsigned hash_rot13( unsigned startval, const void *buf, size_t size ) {
+    for( hash = startval; size; size-- ) {
+        hash += *( ( unsigned char * )buf );
+        hash -= ( hash << 13 ) | ( hash >> 19 );
+        buf = ( unsigned char * )buf + 1;
     }
     return hash;
 }
 
-unsigned shash_rot13(unsigned startval, const char *buf) {
-    for(hash = startval; *buf; buf++) {
-        hash += *((unsigned char *)buf);
-        hash -= (hash << 13) | (hash >> 19);
+unsigned shash_rot13( unsigned startval, const char *buf ) {
+    for( hash = startval; *buf; buf++ ) {
+        hash += *( ( unsigned char * )buf );
+        hash -= ( hash << 13 ) | ( hash >> 19 );
     }
     return hash;
 }

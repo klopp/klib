@@ -65,9 +65,9 @@ extern __ex_types __ex_type;
 
 #if defined(NDEBUG)
 # define __ex_have_msg (__ex_idx && __ex_idx < TRYCATCH_MAX ) ? \
-         __ex_msgs[__ex_idx-1] : 0
+             __ex_msgs[__ex_idx-1] : 0
 #else
-# define __ex_have_msg __ex_msgs[__ex_idx-1]
+# define __ex_have_msg  __ex_msgs[__ex_idx-1]
 #endif
 
 #define __ex_msg        __ex_msgs[__ex_idx-1]

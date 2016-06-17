@@ -12,17 +12,17 @@
 
 static unsigned hash = 0;
 
-unsigned hash_ly(unsigned startval, const void *buf, size_t size) {
-    for(hash = startval; size; size--) {
-        hash = (hash * A) + *((unsigned char *)buf) + B;
-        buf = (unsigned char *)buf + 1;
+unsigned hash_ly( unsigned startval, const void *buf, size_t size ) {
+    for( hash = startval; size; size-- ) {
+        hash = ( hash * A ) + *( ( unsigned char * )buf ) + B;
+        buf = ( unsigned char * )buf + 1;
     }
     return hash;
 }
 
-unsigned shash_ly(unsigned startval, const char *buf) {
-    for(hash = startval; *buf; buf++) {
-        hash = (hash * A) + *((unsigned char *)buf) + B;
+unsigned shash_ly( unsigned startval, const char *buf ) {
+    for( hash = startval; *buf; buf++ ) {
+        hash = ( hash * A ) + *( ( unsigned char * )buf ) + B;
     }
     return hash;
 }

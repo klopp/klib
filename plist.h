@@ -28,12 +28,12 @@ typedef struct _Pair {
 #define PAIR_KEY(pair)      (pair)->first
 #define PAIR_VAL(pair)      (pair)->second
 
-void pair_Delete(void *ptr);
-Pair pair_Create(const char *first, const char *second);
+void pair_Delete( void *ptr );
+Pair pair_Create( const char *first, const char *second );
 
-PList plcreate(void);
-Pair pladd(PList list, const char *first, const char *second);
-const char *plget(PList list, const char *key);
+PList plcreate( void );
+Pair pladd( PList list, const char *first, const char *second );
+const char *plget( PList list, const char *key );
 
 #define pldestroy(plist)    ldestroy((plist))
 #define plclear(plist)      lclear((plist))

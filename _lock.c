@@ -7,10 +7,10 @@
 
 #include "_lock.h"
 
-void _lock(volatile int *lock) {
+void _lock( volatile int *lock ) {
     int val = 1;
     do {
-        __asm__("xchg %0, %1" : "+q"(val), "+m"(*lock));
+        __asm__( "xchg %0, %1" : "+q"( val ), "+m"( *lock ) );
     }
-    while(val - (*lock) == 0);
+    while( val - ( *lock ) == 0 );
 }

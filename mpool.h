@@ -53,7 +53,7 @@ typedef enum _mp_flags {
     MP_DIRTY = 0x01,        // internal defrag flag
     MP_EXPAND = 0x02,       // expand mpool memory if needed
     MP_SLOW = 0x04,         // merge free blocks in mp_free(), RESERVED
-    MP_DEFAULT = (0x00)
+    MP_DEFAULT = ( 0x00 )
 } mp_flags;
 
 typedef struct _mpool {
@@ -66,36 +66,36 @@ typedef struct _mpool {
     struct _mpool *next;
 } *mpool;
 
-typedef void (*mp_walker)(const mpool mp, const mblk mb, void *data);
+typedef void ( *mp_walker )( const mpool mp, const mblk mb, void *data );
 
-mpool mp_create(size_t size, mp_flags flags);
-void mp_release(mpool mp);
-void mp_destroy(mpool mp);
+mpool mp_create( size_t size, mp_flags flags );
+void mp_release( mpool mp );
+void mp_destroy( mpool mp );
 
-void mp_release(mpool mp);
+void mp_release( mpool mp );
 #define m_release()             mp_release( NULL )
 
-void *mp_alloc(mpool mp, size_t size);
-void *mp_calloc(mpool mp, size_t size, size_t n);
-char *mp_strdup(mpool mp, const char *src);
-void *mp_realloc(mpool mp, void *src, size_t size);
+void *mp_alloc( mpool mp, size_t size );
+void *mp_calloc( mpool mp, size_t size, size_t n );
+char *mp_strdup( mpool mp, const char *src );
+void *mp_realloc( mpool mp, void *src, size_t size );
 #define m_alloc(size)           mp_alloc( NULL, (size) )
 #define m_calloc(size, n)       mp_calloc( NULL, (size), (n) )
 #define m_strdup(src)           mp_strdup( NULL, (src) )
 #define m_realloc(src, size)    mp_realloc( NULL, (src), (size) )
 
-int mp_lock(mpool mp, void *ptr);
-int mp_locked(mpool mp, void *ptr);
-int mp_unlock(mpool mp, void *ptr);
+int mp_lock( mpool mp, void *ptr );
+int mp_locked( mpool mp, void *ptr );
+int mp_unlock( mpool mp, void *ptr );
 #define m_lock(ptr)             mp_lock( NULL, (ptr) )
 #define m_locked(ptr)           mp_locked( NULL, (ptr) )
 #define m_unlock(ptr)           mp_unlock( NULL, (ptr) )
 
-int mp_free(mpool mp, void *ptr);
+int mp_free( mpool mp, void *ptr );
 #define m_free(ptr)             mp_free( NULL, (ptr) )
 
-void mp_walk(mpool mp, mp_walker walker, void *data);
-void mp_dump(mpool, FILE *, size_t);
+void mp_walk( mpool mp, mp_walker walker, void *data );
+void mp_dump( mpool, FILE *, size_t );
 #define m_walk(walker, data)    mp_walk( NULL, (walker), (data) )
 #define m_dump(file, width)     mp_dump( NULL, (file), (width) )
 
