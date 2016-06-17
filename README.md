@@ -2,7 +2,7 @@
 
 ## #define TRYCATCH_NESTING Some_value
     
-    //c code
+```c
     try {
     /* up to TRYCATCH_NESTING levels */ 
         try {
@@ -33,10 +33,11 @@
         else printf( "\n" );
     }
     finally;
+```
 
 ## #undef TRYCATCH_NESTING
 
-    //c code
+```c
     try {
         throw( NotImplementedException );
     }
@@ -54,4 +55,4 @@
     finally {
         printf( "Finally block, NOT required if TRYCATCH_NESTING is not set." );
     }
-    
+```
