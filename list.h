@@ -34,9 +34,10 @@ typedef struct _List {
 } *List;
 
 /*
- * Free() wrapper:
+ * Free() wrapper & default list elements destructor:
  */
 void list_Free( void *data );
+#define LD_DEF  list_Free
 
 List lcreate( L_destructor destructor );
 void ldestroy( List list );
