@@ -31,8 +31,6 @@
 //# define snprintf       _snprintf
 # define _CRT_SECURE_NO_WARNINGS
 # pragma warning(disable : 4996)
-#else
-# include <unistd.h>
 #endif
 
 #ifndef __func__
@@ -45,8 +43,28 @@
 # endif
 #endif
 
-#include <stdlib.h>
-#include <string.h>
+#ifndef __KERNEL__
+# define __init
+# define __exit
+# define module_init(a)
+# define module_exit(a)
+# define MODULE_LICENSE(a)
+# define MODULE_AUTHOR(a)
+# define EXPORT_SYMBOL(a)
+#endif
+
+#if defined(__unix__)
+# ifndef __KERNEL__
+#  include <unistd.h>
+#  include <stdlib.h>
+#  include <string.h>
+#  include <stdio.h>
+# endif
+#endif
+
+#ifndef NULL
+# define NULL (void *)0
+#endif
 
 #if defined(USE_MPOOL)
 # include "mpool.h"
@@ -58,34 +76,29 @@
 # define Munlock( ptr )         mp_unlock( NULL, (ptr) )
 # define Mlock( ptr )           mp_lock( NULL, (ptr) )
 #else
-# define Malloc( size )         malloc( (size) )
-# define Strdup( s )            strdup( (s) )
-# define Calloc( size, n )      calloc( (size), (n) )
-# define Realloc( src, n )      realloc( (src), (n) )
-# define Free( ptr )            free( (ptr) )
-# define Munlock( ptr )         (void)ptr
-# define Mlock( ptr )           (void)ptr
+# if defined(__KERNEL__)
+#  include <linux/module.h>
+#  include <linux/slab.h>
+extern void *_k_calloc( int, int );
+extern char *_k_strdup( char * );
+#  define Malloc(sz)             kmalloc( (sz), GFP_KERNEL )
+#  define Strdup( s )            _k_strdup( (s) )
+#  define Calloc(sz,n)           _k_calloc( (sz), (n) )
+#  define Realloc(ptr,sz)        krealloc( (ptr), (sz), GFP_KERNEL )
+#  define Free(ptr)              kfree( (ptr) )
+#  define Munlock( ptr )         (void)ptr
+#  define Mlock( ptr )           (void)ptr
+#  define printf printk
+# else
+#  define Malloc( size )         malloc( (size) )
+#  define Strdup( s )            strdup( (s) )
+#  define Calloc( size, n )      calloc( (size), (n) )
+#  define Realloc( src, n )      realloc( (src), (n) )
+#  define Free( ptr )            free( (ptr) )
+#  define Munlock( ptr )         (void)ptr
+#  define Mlock( ptr )           (void)ptr
+# endif
 #endif
-
-#ifdef _MSC_VER
-typedef __int16 int16_t;
-typedef unsigned __int16 uint16_t;
-typedef __int32 int32_t;
-typedef unsigned __int32 uint32_t;
-typedef __int64 int64_t;
-typedef unsigned __int64 uint64_t;
-#else
-# include <stdint.h>
-#endif
-
-#define     i16                 int16_t
-#define     ui16                uint16_t
-
-#define     i32                 int32_t
-#define     ui32                uint32_t
-
-#define     i64                 int64_t
-#define     ui64                uint64_t
 
 #define forever()       for(;;)
 #define unused( var )   ((void)var)
