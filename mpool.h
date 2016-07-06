@@ -23,7 +23,7 @@ extern "C"
 #if defined(DEBUG)
 # define MPOOL_MIN      (1024*64)
 #else
-# define MPOOL_MIN      (1024*1024)
+# define MPOOL_MIN      (1024*1024*16)
 #endif
 
 /*
@@ -69,10 +69,10 @@ typedef struct _mpool {
 typedef void ( *mp_walker )( const mpool mp, const mblk mb, void *data );
 
 mpool mp_create( size_t size, mp_flags flags );
-void mp_release( mpool mp );
+void mp_clear( mpool mp );
 void mp_destroy( mpool mp );
 
-void mp_release( mpool mp );
+void mp_clear( mpool mp );
 #define m_release()             mp_release( NULL )
 
 void *mp_alloc( mpool mp, size_t size );
