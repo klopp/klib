@@ -319,6 +319,7 @@ static void *_mp_alloc( const mpool mp, size_t size ) {
     return NULL;
 }
 
+
 void *mp_alloc( mpool mp, size_t size ) {
     void *ptr;
     mpool current;
@@ -346,10 +347,6 @@ void *mp_alloc( mpool mp, size_t size ) {
     while( !ptr && current );
 
     if( !ptr && ( mp->flags & MP_EXPAND ) == MP_EXPAND ) {
-        /*
-         mpool newpool = mp_create( (largest + size) * MP_EXPAND_FOR,
-         mp->flags );
-         */
         mpool newpool = mp_create( MP_EXPAND_FOR( ( largest + size ) ), mp->flags );
 
         if( !newpool ) {
@@ -436,12 +433,20 @@ void *mp_realloc( mpool mp, void *src, size_t size ) {
 int mp_free( mpool mp, void *ptr ) {
     MP_SET( mp );
 
-    if( !ptr || !mp ) {
+    if( !ptr ) {
         return 0;
     }
 
-    if( !MP_VALID( ptr, mp ) ) {
-        return mp_free( mp->next, ptr );
+    while( mp ) {
+        if( !MP_VALID( ptr, mp ) ) {
+            break;
+        }
+
+        mp = mp->next;
+    }
+
+    if( !mp ) {
+        return 0;
     }
 
     if( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MB_LOCKED ) {
