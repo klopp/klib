@@ -36,7 +36,7 @@ extern "C"
 
 typedef enum _mb_flags
 {
-    MB_BUSY = 0x01, MB_LOCKED = 0x02
+    MBF_BUSY = 0x01, MBF_LOCKED = 0x02
 }
 mb_flags;
 
@@ -50,9 +50,9 @@ typedef struct _mblk {
  * Warning! Do not change flags manually after mp_create() call!
  */
 typedef enum _mp_flags {
-    MP_DIRTY = 0x01,        // internal defrag flag
-    MP_EXPAND = 0x02,       // expand mpool memory if needed
-    MP_DEFAULT = ( 0x00 )
+    MPF_DIRTY = 0x01,        // internal defrag flag
+    MPF_EXPAND = 0x02,       // expand mpool memory if needed
+    MPF_DEFAULT = ( 0x00 )
 } mp_flags;
 
 typedef struct _mpool {

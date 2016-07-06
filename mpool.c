@@ -94,7 +94,7 @@ static void _mp_destroy( void ) {
 
 #define MP_SET( mp ) \
     if( !mp ) { \
-    if( !_mp ) _mp = mp_create( 0, MP_EXPAND ); \
+    if( !_mp ) _mp = mp_create( 0, MPF_EXPAND ); \
     mp = _mp; }
 /*
  * Recursive check for all mpools in chain:
@@ -112,7 +112,7 @@ mpool mp_create( size_t size, mp_flags flags ) {
     size = ( size ? size : MPOOL_MIN );
     MS_ALIGN( size, MPOOL_MIN );
 
-    if( ( flags & MP_EXPAND ) != MP_EXPAND ) {
+    if( ( flags & MPF_EXPAND ) != MPF_EXPAND ) {
         mp = _mp_malloc( sizeof( struct _mpool ) + size + sizeof( struct _mblk ) );
 
         if( !mp ) {
@@ -183,7 +183,7 @@ void mp_clear( mpool mp ) {
 void mp_destroy( mpool mp ) {
     if( mp ) {
         //mp_clear( mp );
-        if( ( mp->flags & MP_EXPAND ) == MP_EXPAND ) {
+        if( ( mp->flags & MPF_EXPAND ) == MPF_EXPAND ) {
             free( mp->pool );
         }
 
@@ -245,7 +245,7 @@ static size_t _mp_defragment_pool( const mpool mp ) {
     mblk next;
     size_t junctions;
 
-    if( !mp || ( mp->flags & MP_DIRTY ) != MP_DIRTY ) {
+    if( !mp || ( mp->flags & MPF_DIRTY ) != MPF_DIRTY ) {
         return 0;
     }
 
@@ -259,7 +259,7 @@ static size_t _mp_defragment_pool( const mpool mp ) {
             break;
         }
 
-        if( ( mb->flags & MB_BUSY ) || ( next->flags & MB_BUSY ) ) {
+        if( ( mb->flags & MBF_BUSY ) || ( next->flags & MBF_BUSY ) ) {
             mb = next;
             continue;
         }
@@ -269,7 +269,7 @@ static size_t _mp_defragment_pool( const mpool mp ) {
     }
 
     if( junctions ) {
-        mp->flags &= ( ~MP_DIRTY );
+        mp->flags &= ( ~MPF_DIRTY );
     }
 
     return junctions;
@@ -286,7 +286,7 @@ static void *_mp_alloc( const mpool mp, size_t size ) {
     min = mp->size;
 
     while( MB_VALID( mb, mp ) ) {
-        if( !( mb->flags & MB_BUSY ) && mb->size >= size ) {
+        if( !( mb->flags & MBF_BUSY ) && mb->size >= size ) {
             if( mb->size == size ) {
                 best = mb;
                 break;
@@ -311,8 +311,8 @@ static void *_mp_alloc( const mpool mp, size_t size ) {
             best->size = size;
         }
 
-        best->flags = MB_BUSY;
-        mp->flags |= MP_DIRTY;
+        best->flags = MBF_BUSY;
+        mp->flags |= MPF_DIRTY;
         return best + 1;
     }
 
@@ -346,7 +346,7 @@ void *mp_alloc( mpool mp, size_t size ) {
     }
     while( !ptr && current );
 
-    if( !ptr && ( mp->flags & MP_EXPAND ) == MP_EXPAND ) {
+    if( !ptr && ( mp->flags & MPF_EXPAND ) == MPF_EXPAND ) {
         mpool newpool = mp_create( MP_EXPAND_FOR( ( largest + size ) ), mp->flags );
 
         if( !newpool ) {
@@ -377,8 +377,8 @@ int mp_lock( mpool mp, void *ptr ) {
     MP_SET( mp );
 
     if( _mp_valid_ptr( ptr, mp ) ) {
-        if( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MB_BUSY ) {
-            ( ( ( struct _mblk * ) ptr ) - 1 )->flags |= MB_LOCKED;
+        if( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MBF_BUSY ) {
+            ( ( ( struct _mblk * ) ptr ) - 1 )->flags |= MBF_LOCKED;
             return 1;
         }
     }
@@ -390,8 +390,8 @@ int mp_unlock( mpool mp, void *ptr ) {
     MP_SET( mp );
 
     if( _mp_valid_ptr( ptr, mp ) ) {
-        if( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MB_LOCKED ) {
-            ( ( ( struct _mblk * ) ptr ) - 1 )->flags &= ~( MB_LOCKED );
+        if( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MBF_LOCKED ) {
+            ( ( ( struct _mblk * ) ptr ) - 1 )->flags &= ~( MBF_LOCKED );
             return 1;
         }
     }
@@ -402,7 +402,7 @@ int mp_unlock( mpool mp, void *ptr ) {
 int mp_locked( mpool mp, void *ptr ) {
     MP_SET( mp );
     return _mp_valid_ptr( ptr, mp ) ?
-           ( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MB_LOCKED ) : 0;
+           ( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MBF_LOCKED ) : 0;
 }
 
 void *mp_realloc( mpool mp, void *src, size_t size ) {
@@ -411,7 +411,7 @@ void *mp_realloc( mpool mp, void *src, size_t size ) {
     dest = NULL;
 
     if( _mp_valid_ptr( src, mp ) ) {
-        if( !( ( ( ( struct _mblk * ) src ) - 1 )->flags & MB_LOCKED ) ) {
+        if( !( ( ( ( struct _mblk * ) src ) - 1 )->flags & MBF_LOCKED ) ) {
             dest = mp_alloc( mp, size );
 
             if( dest ) {
@@ -449,12 +449,12 @@ int mp_free( mpool mp, void *ptr ) {
         return 0;
     }
 
-    if( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MB_LOCKED ) {
+    if( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MBF_LOCKED ) {
         return 0;
     }
 
-    if( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MB_BUSY ) {
-        mp->flags |= MP_DIRTY;
+    if( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MBF_BUSY ) {
+        mp->flags |= MPF_DIRTY;
     }
 
     ( ( ( struct _mblk * ) ptr ) - 1 )->flags = 0;
@@ -550,10 +550,10 @@ void mp_dump( mpool mp, FILE *fout, size_t maxw ) {
             size_t w;
             char c = '.';
 
-            if( mb->flags & MB_BUSY ) {
+            if( mb->flags & MBF_BUSY ) {
                 c = '*';
 
-                if( mb->flags & MB_LOCKED ) {
+                if( mb->flags & MBF_LOCKED ) {
                     c = '#';
                 }
             }
