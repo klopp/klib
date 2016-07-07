@@ -147,7 +147,6 @@ mpool mp_create( size_t size, mp_flags flags ) {
     mp->flags = flags;
     mp->min = mp->pool + sizeof( struct _mblk );
     mp->max = mp->pool + size - MBLK_MIN;
-    mp->lastfree = ( mblk ) mp->pool;
     mp_clear( mp );
     return mp;
 }
@@ -163,7 +162,6 @@ void mp_clear( mpool mp ) {
     ( ( mblk ) mp->pool )->flags = 0;
     ( ( mblk ) mp->pool )->size = mp->size;
     ( ( mblk ) mp->pool )->signature = MBLK_SIGNATURE;
-    mp->lastfree = ( mblk ) mp->pool;
 }
 
 void mp_destroy( mpool mp ) {
@@ -450,7 +448,6 @@ int mp_free( mpool mp, void *ptr ) {
     }
 
     ( ( ( struct _mblk * ) ptr ) - 1 )->flags = 0;
-    mp->lastfree = ( ( ( struct _mblk * ) ptr ) - 1 );
     return 1;
 }
 
