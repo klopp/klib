@@ -147,6 +147,7 @@ mpool mp_create( size_t size, mp_flags flags ) {
     mp->flags = flags;
     mp->min = mp->pool + sizeof( struct _mblk );
     mp->max = mp->pool + size - MBLK_MIN;
+    mp->last = ( struct _mblk * ) mp->pool;
     mp_clear( mp );
     return mp;
 }
@@ -269,20 +270,28 @@ static void *_mp_alloc( const mpool mp, size_t size ) {
     mb = ( mblk ) mp->pool;
     min = mp->size;
 
-    while( MB_VALID( mb, mp ) ) {
-        if( !( mb->flags & MBF_BUSY ) && mb->size >= size ) {
-            if( ( mb->size == size ) || ( mp->flags & MPF_FAST ) ) {
-                best = mb;
-                break;
-            }
-
-            if( !best || mb->size < min ) {
-                best = mb;
-                min = mb->size;
-            }
+    if( ( mp->flags & MPF_FAST ) && MB_VALID( mp->last, mp ) ) {
+        if( !( mp->last->flags & MBF_BUSY ) && mp->last->size >= size ) {
+            best = mp->last;
         }
+    }
 
-        mb = MB_NEXT( mb );
+    if( !best ) {
+        while( MB_VALID( mb, mp ) ) {
+            if( !( mb->flags & MBF_BUSY ) && mb->size >= size ) {
+                if( ( mb->size == size ) || ( mp->flags & MPF_FAST ) ) {
+                    best = mb;
+                    break;
+                }
+
+                if( !best || mb->size < min ) {
+                    best = mb;
+                    min = mb->size;
+                }
+            }
+
+            mb = MB_NEXT( mb );
+        }
     }
 
     if( best ) {
@@ -292,6 +301,7 @@ static void *_mp_alloc( const mpool mp, size_t size ) {
             mb->signature = MBLK_SIGNATURE;
             mb->flags = 0;
             mb->size = best->size - size - sizeof( struct _mblk );
+            mp->last = mb;
             best->size = size;
         }
 
@@ -321,9 +331,10 @@ void *mp_alloc( mpool mp, size_t size ) {
 
         ptr = _mp_alloc( current_pool, size );
 
-        if( !ptr
-                && ( !( mp->flags & MPF_FAST ) && _mp_defragment_pool( current_pool ) ) ) {
-            ptr = _mp_alloc( current_pool, size );
+        if( !ptr ) {
+            if( ( !( mp->flags & MPF_FAST ) && _mp_defragment_pool( current_pool ) ) ) {
+                ptr = _mp_alloc( current_pool, size );
+            }
         }
 
         current_pool = current_pool->next;

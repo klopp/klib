@@ -60,6 +60,7 @@ typedef struct _mpool {
     size_t id;
     size_t size;
     mp_flags flags;
+    struct _mblk *last;
     char *min;
     char *max;
     char *pool;
