@@ -147,6 +147,7 @@ mpool mp_create( size_t size, mp_flags flags ) {
     mp->flags = flags;
     mp->min = mp->pool + sizeof( struct _mblk );
     mp->max = mp->pool + size - MBLK_MIN;
+    mp->lastfree = ( mblk ) mp->pool;
     mp_clear( mp );
     return mp;
 }
@@ -158,31 +159,16 @@ void mp_clear( mpool mp ) {
         mp_clear( mp->next );
     }
 
-#ifdef DEBUG
-
-    do {
-        size_t i = 0;
-        char *ptr = ( char * )( ( mblk ) mp->pool );
-
-        while( i < mp->size / 4 ) {
-            *( long * )ptr = 0xDEADBEEF;
-            ptr += 4;
-            i++;
-        }
-    }
-    while( 0 );
-
-#else
     memset( ( ( mblk ) mp->pool ), 0, mp->size );
-#endif
     ( ( mblk ) mp->pool )->flags = 0;
     ( ( mblk ) mp->pool )->size = mp->size;
     ( ( mblk ) mp->pool )->signature = MBLK_SIGNATURE;
+    mp->lastfree = ( mblk ) mp->pool;
 }
 
 void mp_destroy( mpool mp ) {
     if( mp ) {
-        //mp_clear( mp );
+        /*mp_clear( mp );*/
         if( ( mp->flags & MPF_EXPAND ) == MPF_EXPAND ) {
             free( mp->pool );
         }
@@ -287,7 +273,7 @@ static void *_mp_alloc( const mpool mp, size_t size ) {
 
     while( MB_VALID( mb, mp ) ) {
         if( !( mb->flags & MBF_BUSY ) && mb->size >= size ) {
-            if( ( mb->size == size ) || ( mb->flags & MPF_FAST ) ) {
+            if( ( mb->size == size ) || ( mp->flags & MPF_FAST ) ) {
                 best = mb;
                 break;
             }
@@ -303,7 +289,7 @@ static void *_mp_alloc( const mpool mp, size_t size ) {
 
     if( best ) {
         if( best->size > size + MBLK_MIN + sizeof( struct _mblk ) ) {
-            // split block
+            /* split block */
             mb = ( mblk )( ( char * ) best + sizeof( struct _mblk ) + size );
             mb->signature = MBLK_SIGNATURE;
             mb->flags = 0;
@@ -319,35 +305,36 @@ static void *_mp_alloc( const mpool mp, size_t size ) {
     return NULL;
 }
 
-
 void *mp_alloc( mpool mp, size_t size ) {
     void *ptr;
-    mpool current;
-    size_t largest = 0;
+    mpool current_pool;
+    size_t largest_pool_size = 0;
     size_t workhorse = 0;
     MP_SET( mp );
     MS_ALIGN( size, MBLK_MIN );
-    current = mp;
+    current_pool = mp;
 
     do {
         workhorse++;
 
-        if( current->size > largest ) {
-            largest = current->size;
+        if( current_pool->size > largest_pool_size ) {
+            largest_pool_size = current_pool->size;
         }
 
-        ptr = _mp_alloc( current, size );
+        ptr = _mp_alloc( current_pool, size );
 
-        if( !ptr && _mp_defragment_pool( current ) ) {
-            ptr = _mp_alloc( current, size );
+        if( !ptr
+                && ( !( mp->flags & MPF_FAST ) && _mp_defragment_pool( current_pool ) ) ) {
+            ptr = _mp_alloc( current_pool, size );
         }
 
-        current = current->next;
+        current_pool = current_pool->next;
     }
-    while( !ptr && current );
+    while( !ptr && current_pool );
 
     if( !ptr && ( mp->flags & MPF_EXPAND ) == MPF_EXPAND ) {
-        mpool newpool = mp_create( MP_EXPAND_FOR( ( largest + size ) ), mp->flags );
+        mpool newpool = mp_create( MP_EXPAND_FOR( ( largest_pool_size + size ) ),
+                                   mp->flags );
 
         if( !newpool ) {
             return NULL;
@@ -358,8 +345,13 @@ void *mp_alloc( mpool mp, size_t size ) {
         }
 
         mp->next = newpool;
+
+        if( mp->flags & MPF_FAST ) {
+            _mp_defragment_pool( mp );
+        }
+
         /*
-         * swap base pool and newpool:
+         * swap base pool and newpool (set new pool first)
          */
         newpool->id = mp->id;
         mp->id = workhorse;
@@ -458,6 +450,7 @@ int mp_free( mpool mp, void *ptr ) {
     }
 
     ( ( ( struct _mblk * ) ptr ) - 1 )->flags = 0;
+    mp->lastfree = ( ( ( struct _mblk * ) ptr ) - 1 );
     return 1;
 }
 
@@ -507,7 +500,6 @@ void mp_dump( mpool mp, FILE *fout, size_t maxw ) {
 
     while( current ) {
         size_t largest = 0;
-        //size_t total = 0;
         size_t mb_total = 0;
         size_t onew;
         mblk mb;
@@ -524,7 +516,6 @@ void mp_dump( mpool mp, FILE *fout, size_t maxw ) {
             mp_blocks++;
             mb_total++;
 
-            //total += mb->size;
             if( largest < mb->size ) {
                 largest = mb->size;
             }
