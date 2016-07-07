@@ -52,6 +52,7 @@ typedef struct _mblk {
 typedef enum _mp_flags {
     MPF_DIRTY = 0x01,        // internal defrag flag
     MPF_EXPAND = 0x02,       // expand mpool memory if needed
+    MPF_FAST = 0x04,       // do not search best free block
     MPF_DEFAULT = ( 0x00 )
 } mp_flags;
 

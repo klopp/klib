@@ -287,7 +287,7 @@ static void *_mp_alloc( const mpool mp, size_t size ) {
 
     while( MB_VALID( mb, mp ) ) {
         if( !( mb->flags & MBF_BUSY ) && mb->size >= size ) {
-            if( mb->size == size ) {
+            if( ( mb->size == size ) || ( mb->flags & MPF_FAST ) ) {
                 best = mb;
                 break;
             }
