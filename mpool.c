@@ -27,7 +27,8 @@
 
 #if defined(DEBUG)
 
-static void *_mp_malloc( size_t size ) {
+static void *_mp_malloc( size_t size )
+{
     void *ptr = malloc( size );
 
     if( ptr ) {
@@ -37,7 +38,8 @@ static void *_mp_malloc( size_t size ) {
     return ptr;
 }
 
-static int MP_VALID( void *ptr, mpool mp ) {
+static int MP_VALID( void *ptr, mpool mp )
+{
     if( ( char * )( ptr ) < mp->min || ( char * )( ptr ) > mp->max ) {
         return 0;
     }
@@ -45,7 +47,8 @@ static int MP_VALID( void *ptr, mpool mp ) {
     return ( ( ( ( struct _mblk * )( ptr ) ) - 1 )->signature == MBLK_SIGNATURE );
 }
 
-static int MB_VALID( mblk mb, mpool mp ) {
+static int MB_VALID( mblk mb, mpool mp )
+{
     if( ( char * )( mb + 1 ) < mp->min || ( char * )( mb + 1 ) > mp->max ) {
         return 0;
     }
@@ -53,7 +56,8 @@ static int MB_VALID( mblk mb, mpool mp ) {
     return ( mb->signature == MBLK_SIGNATURE );
 }
 
-static mblk MB_NEXT( mblk mb ) {
+static mblk MB_NEXT( mblk mb )
+{
     return ( mblk )( ( char * )( mb ) + sizeof( struct _mblk ) + mb->size );
 }
 
@@ -88,7 +92,8 @@ static mblk MB_NEXT( mblk mb ) {
 
 static mpool _mp = NULL;
 static int _mp_atexit = 0;
-static void _mp_destroy( void ) {
+static void _mp_destroy( void )
+{
     mp_destroy( _mp );
 }
 
@@ -99,7 +104,8 @@ static void _mp_destroy( void ) {
 /*
  * Recursive check for all mpools in chain:
  */
-static int _mp_valid_ptr( void *ptr, const mpool mp ) {
+static int _mp_valid_ptr( void *ptr, const mpool mp )
+{
     if( !mp || !ptr ) {
         return 0;
     }
@@ -107,7 +113,8 @@ static int _mp_valid_ptr( void *ptr, const mpool mp ) {
     return MP_VALID( ptr, mp ) ? 1 : _mp_valid_ptr( ptr, mp->next );
 }
 
-mpool mp_create( size_t size, mp_flags flags ) {
+mpool mp_create( size_t size, mp_flags flags )
+{
     mpool mp;
     size = ( size ? size : MPOOL_MIN );
     MS_ALIGN( size, MPOOL_MIN );
@@ -152,7 +159,8 @@ mpool mp_create( size_t size, mp_flags flags ) {
     return mp;
 }
 
-void mp_clear( mpool mp ) {
+void mp_clear( mpool mp )
+{
     MP_SET( mp );
 
     if( mp->next ) {
@@ -165,7 +173,8 @@ void mp_clear( mpool mp ) {
     ( ( mblk ) mp->pool )->signature = MBLK_SIGNATURE;
 }
 
-void mp_destroy( mpool mp ) {
+void mp_destroy( mpool mp )
+{
     if( mp ) {
         /*mp_clear( mp );*/
         if( ( mp->flags & MPF_EXPAND ) == MPF_EXPAND ) {
@@ -180,7 +189,8 @@ void mp_destroy( mpool mp ) {
     }
 }
 
-void *mp_calloc( mpool mp, size_t size, size_t n ) {
+void *mp_calloc( mpool mp, size_t size, size_t n )
+{
     void *ptr;
     MP_SET( mp );
     size *= n;
@@ -194,7 +204,8 @@ void *mp_calloc( mpool mp, size_t size, size_t n ) {
     return ptr;
 }
 
-char *mp_strdup( mpool mp, const char *src ) {
+char *mp_strdup( mpool mp, const char *src )
+{
     size_t size = strlen( src ) + 1;
     char *ptr = mp_alloc( mp, size );
 
@@ -205,7 +216,8 @@ char *mp_strdup( mpool mp, const char *src ) {
     return ptr;
 }
 
-void mp_walk( mpool mp, mp_walker walker, void *data ) {
+void mp_walk( mpool mp, mp_walker walker, void *data )
+{
     MP_SET( mp );
 
     if( mp ) {
@@ -225,7 +237,8 @@ void mp_walk( mpool mp, mp_walker walker, void *data ) {
 /*
  * Internal. Defragment mpool. Return free blocks junction count.
  */
-static size_t _mp_defragment_pool( const mpool mp ) {
+static size_t _mp_defragment_pool( const mpool mp )
+{
     mblk mb;
     mblk next;
     size_t junctions;
@@ -263,7 +276,8 @@ static size_t _mp_defragment_pool( const mpool mp ) {
 /*
  * Internal. Try to allocate requested block.
  */
-static void *_mp_alloc( const mpool mp, size_t size ) {
+static void *_mp_alloc( const mpool mp, size_t size )
+{
     mblk best = NULL;
     mblk mb;
     size_t min;
@@ -313,10 +327,11 @@ static void *_mp_alloc( const mpool mp, size_t size ) {
     return NULL;
 }
 
-void *mp_alloc( mpool mp, size_t size ) {
+void *mp_alloc( mpool mp, size_t size )
+{
     void *ptr;
     mpool current_pool;
-    size_t largest_pool_size = 0;
+    size_t largest_pool_size = mp->size;
     size_t workhorse = 0;
     MP_SET( mp );
     MS_ALIGN( size, MBLK_MIN );
@@ -324,11 +339,11 @@ void *mp_alloc( mpool mp, size_t size ) {
 
     do {
         workhorse++;
-
-        if( current_pool->size > largest_pool_size ) {
-            largest_pool_size = current_pool->size;
-        }
-
+        /*
+                if( current_pool->size > largest_pool_size ) {
+                    largest_pool_size = current_pool->size;
+                }
+        */
         ptr = _mp_alloc( current_pool, size );
 
         if( !ptr ) {
@@ -374,7 +389,8 @@ void *mp_alloc( mpool mp, size_t size ) {
     return ptr;
 }
 
-int mp_lock( mpool mp, void *ptr ) {
+int mp_lock( mpool mp, void *ptr )
+{
     MP_SET( mp );
 
     if( _mp_valid_ptr( ptr, mp ) ) {
@@ -387,7 +403,8 @@ int mp_lock( mpool mp, void *ptr ) {
     return 0;
 }
 
-int mp_unlock( mpool mp, void *ptr ) {
+int mp_unlock( mpool mp, void *ptr )
+{
     MP_SET( mp );
 
     if( _mp_valid_ptr( ptr, mp ) ) {
@@ -400,13 +417,15 @@ int mp_unlock( mpool mp, void *ptr ) {
     return 0;
 }
 
-int mp_locked( mpool mp, void *ptr ) {
+int mp_locked( mpool mp, void *ptr )
+{
     MP_SET( mp );
     return _mp_valid_ptr( ptr, mp ) ?
            ( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MBF_LOCKED ) : 0;
 }
 
-void *mp_realloc( mpool mp, void *src, size_t size ) {
+void *mp_realloc( mpool mp, void *src, size_t size )
+{
     void *dest;
     MP_SET( mp );
     dest = NULL;
@@ -431,7 +450,8 @@ void *mp_realloc( mpool mp, void *src, size_t size ) {
     return dest;
 }
 
-int mp_free( mpool mp, void *ptr ) {
+int mp_free( mpool mp, void *ptr )
+{
     MP_SET( mp );
 
     if( !ptr ) {
@@ -462,7 +482,8 @@ int mp_free( mpool mp, void *ptr ) {
     return 1;
 }
 
-static char *_mp_format_size( unsigned long size ) {
+static char *_mp_format_size( unsigned long size )
+{
     static char bsz[32];
 
     if( size < 1024 ) {
@@ -489,7 +510,8 @@ static char *_mp_format_size( unsigned long size ) {
     return bsz;
 }
 
-void mp_dump( mpool mp, FILE *fout, size_t maxw ) {
+void mp_dump( mpool mp, FILE *fout, size_t maxw )
+{
     unsigned long mp_total = 0;
     unsigned long mp_blocks = 0;
     unsigned long mp_largest = 0;

@@ -21,7 +21,7 @@ extern "C"
 #define MBLK_SIGNATURE  0x1515
 #define MBLK_MIN        (sizeof(struct _mblk))
 #if defined(DEBUG)
-# define MPOOL_MIN      (1024*64)
+# define MPOOL_MIN      (1024)
 #else
 # define MPOOL_MIN      (1024*1024*16)
 #endif
@@ -40,9 +40,12 @@ typedef enum _mb_flags
 }
 mb_flags;
 
+struct _mpool;
+
 typedef struct _mblk {
     unsigned short signature;
     unsigned short flags;
+    struct _mpool *mp;
     size_t size;
 } *mblk;
 
