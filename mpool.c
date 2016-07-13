@@ -339,11 +339,6 @@ void *mp_alloc( mpool mp, size_t size )
 
     do {
         workhorse++;
-        /*
-                if( current_pool->size > largest_pool_size ) {
-                    largest_pool_size = current_pool->size;
-                }
-        */
         ptr = _mp_alloc( current_pool, size );
 
         if( !ptr ) {
@@ -482,10 +477,8 @@ int mp_free( mpool mp, void *ptr )
     return 1;
 }
 
-static char *_mp_format_size( unsigned long size )
+static char *_mp_format_size( unsigned long size, char *bsz )
 {
-    static char bsz[32];
-
     if( size < 1024 ) {
         sprintf( bsz, "%luB", size );
     }
@@ -499,8 +492,36 @@ static char *_mp_format_size( unsigned long size )
     }
     else {
         if( size % ( 1024 * 1024 ) ) {
-            sprintf( bsz, "%lu.%luMb", size / ( 1024 * 1024 ),
+            char *ptr;
+            sprintf( bsz, "%lu.%lu", size / ( 1024 * 1024 ),
                      size % ( 1024 * 1024 ) );
+            ptr = strchr( bsz, '.' );
+
+            if( *ptr ) {
+                ptr++;
+            }
+
+            if( *ptr ) {
+                ptr++;
+            }
+
+            if( *ptr ) {
+                ptr++;
+            }
+
+            if( *ptr ) {
+                ptr++;
+            }
+
+            if( *ptr ) {
+                ptr++;
+            }
+
+            *ptr = 'M';
+            ptr++;
+            *ptr = 'b';
+            ptr++;
+            *ptr = 0;
         }
         else {
             sprintf( bsz, "%luMb", size / ( 1024 * 1024 ) );
@@ -519,6 +540,7 @@ void mp_dump( mpool mp, FILE *fout, size_t maxw )
     size_t mp_largest_free = 0;
     size_t mp_pools = 0;
     mpool current;
+    char bsz[32];
     char *outbuf = malloc( maxw + 32 );
 
     if( !outbuf ) {
@@ -556,14 +578,14 @@ void mp_dump( mpool mp, FILE *fout, size_t maxw )
         onew = largest / maxw;
 #ifndef __WINDOWS__
         fprintf( fout, "ID: %zu, size: %s, ", current->id,
-                 _mp_format_size( current->size ) );
+                 _mp_format_size( current->size, bsz ) );
         fprintf( fout, "blocks: %zu, internal: %s\n", mb_total,
-                 _mp_format_size( mb_total * sizeof( struct _mblk ) ) );
+                 _mp_format_size( mb_total * sizeof( struct _mblk ) , bsz ) );
 #else
         fprintf( fout, "ID: %u, size: %s, ", current->id,
-                 _mp_format_size( current->size ) );
+                 _mp_format_size( current->size, bsz ) );
         fprintf( fout, "blocks: %u, internal: %s\n", mb_total,
-                 _mp_format_size( mb_total * sizeof( struct _mblk ) ) );
+                 _mp_format_size( mb_total * sizeof( struct _mblk ) ), bsz );
 #endif
         mb = ( mblk ) current->pool;
 
@@ -587,7 +609,7 @@ void mp_dump( mpool mp, FILE *fout, size_t maxw )
             }
 
             memset( outbuf, 0, maxw + 32 );
-            sprintf( outbuf, "%10s [", _mp_format_size( mb->size ) );
+            sprintf( outbuf, "%10s [", _mp_format_size( mb->size, bsz ) );
             w = mb->size / onew;
 
             if( w > maxw ) {
@@ -616,17 +638,19 @@ void mp_dump( mpool mp, FILE *fout, size_t maxw )
         fprintf( fout, "%-16s: %u\n", "Total pools", mp_pools );
 #endif
         fprintf( fout, "%-16s: %s\n", "Largest pool",
-                 _mp_format_size( mp_largest ) );
+                 _mp_format_size( mp_largest, bsz ) );
     }
 
-    fprintf( fout, "%-16s: %s\n", "Total allocated", _mp_format_size( mp_total ) );
-    fprintf( fout, "%-16s: %s\n", "Total free", _mp_format_size( mp_total_free ) );
+    fprintf( fout, "%-16s: %s\n", "Total allocated", _mp_format_size( mp_total,
+             bsz ) );
+    fprintf( fout, "%-16s: %s\n", "Total free", _mp_format_size( mp_total_free,
+             bsz ) );
     fprintf( fout, "%-16s: %lu\n", "Total blocks", mp_blocks );
     fprintf( fout, "%-16s: %s\n", "Largest free",
-             _mp_format_size( mp_largest_free ) );
+             _mp_format_size( mp_largest_free, bsz ) );
     fprintf( fout, "%-16s: %s\n", "Internal memory",
              _mp_format_size(
                  ( mp_blocks * sizeof( struct _mblk ) )
-                 + ( mp_pools * sizeof( struct _mpool ) ) ) );
+                 + ( mp_pools * sizeof( struct _mpool ) ), bsz ) );
     free( outbuf );
 }
