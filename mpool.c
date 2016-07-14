@@ -32,7 +32,7 @@ static void *_mp_malloc( size_t size )
     void *ptr = malloc( size );
 
     if( ptr ) {
-        memset( ptr, 0x69, size );
+        memset( ptr, '#', size );
     }
 
     return ptr;
@@ -85,7 +85,7 @@ static mblk MB_NEXT( mblk mb )
     (size) += (sizeof(size_t) - 1); \
     (size) &= ~(sizeof(size_t) - 1)
 
-#define SWAP( tmp, a, b ) \
+#define MP_SWAP( tmp, a, b ) \
     (tmp) = (a); \
     (a) = (b); \
     (b) = (tmp)
@@ -374,10 +374,10 @@ void *mp_alloc( mpool mp, size_t size )
          */
         newpool->id = mp->id;
         mp->id = workhorse;
-        SWAP( workhorse, mp->size, newpool->size );
-        SWAP( ptr, mp->min, newpool->min );
-        SWAP( ptr, mp->max, newpool->max );
-        SWAP( ptr, mp->pool, newpool->pool );
+        MP_SWAP( workhorse, mp->size, newpool->size );
+        MP_SWAP( ptr, mp->min, newpool->min );
+        MP_SWAP( ptr, mp->max, newpool->max );
+        MP_SWAP( ptr, mp->pool, newpool->pool );
         ptr = _mp_alloc( mp, size );
     }
 
@@ -493,35 +493,15 @@ static char *_mp_format_size( unsigned long size, char *bsz )
     else {
         if( size % ( 1024 * 1024 ) ) {
             char *ptr;
+            int  i = 4;
             sprintf( bsz, "%lu.%lu", size / ( 1024 * 1024 ),
                      size % ( 1024 * 1024 ) );
             ptr = strchr( bsz, '.' );
 
-            if( *ptr ) {
-                ptr++;
+            while( *ptr++ && --i ) {
             }
 
-            if( *ptr ) {
-                ptr++;
-            }
-
-            if( *ptr ) {
-                ptr++;
-            }
-
-            if( *ptr ) {
-                ptr++;
-            }
-
-            if( *ptr ) {
-                ptr++;
-            }
-
-            *ptr = 'M';
-            ptr++;
-            *ptr = 'b';
-            ptr++;
-            *ptr = 0;
+            strcpy( ptr, "Mb" );
         }
         else {
             sprintf( bsz, "%luMb", size / ( 1024 * 1024 ) );
