@@ -148,6 +148,11 @@ mpool mp_create( size_t size, mp_flags flags )
         atexit( _mp_destroy );
     }
 
+#ifndef __WINDOWS__
+    pthread_mutex_init( &mp->lock, NULL );
+#else
+    mp->lock = 0;
+#endif
     mp->id = 0;
     mp->size = size;
     mp->next = NULL;
@@ -185,6 +190,11 @@ void mp_destroy( mpool mp )
             mp_destroy( mp->next );
         }
 
+#ifndef __WINDOWS__
+        pthread_mutex_destroy( &mp->lock );
+#else
+        mp->lock = 0;
+#endif
         free( mp );
     }
 }
@@ -331,9 +341,12 @@ void *mp_alloc( mpool mp, size_t size )
 {
     void *ptr;
     mpool current_pool;
-    size_t largest_pool_size = mp->size;
-    size_t workhorse = 0;
+    size_t largest_pool_size;
+    size_t workhorse;
     MP_SET( mp );
+    _mp_lock( mp );
+    largest_pool_size = mp->size;
+    workhorse = 0;
     MS_ALIGN( size, MBLK_MIN );
     current_pool = mp;
 
@@ -356,6 +369,7 @@ void *mp_alloc( mpool mp, size_t size )
                                    mp->flags );
 
         if( !newpool ) {
+            _mp_unlock( mp );
             return NULL;
         }
 
@@ -381,6 +395,7 @@ void *mp_alloc( mpool mp, size_t size )
         ptr = _mp_alloc( mp, size );
     }
 
+    _mp_unlock( mp );
     return ptr;
 }
 
@@ -437,9 +452,14 @@ void *mp_realloc( mpool mp, void *src, size_t size )
                 }
 
                 memcpy( dest, src, tomove );
-                mp_free( mp, src );
             }
         }
+    }
+
+    _mp_unlock( mp );
+
+    if( dest ) {
+        mp_free( mp, src );
     }
 
     return dest;
@@ -447,9 +467,13 @@ void *mp_realloc( mpool mp, void *src, size_t size )
 
 int mp_free( mpool mp, void *ptr )
 {
+    mpool locked;
     MP_SET( mp );
+    _mp_lock( mp );
+    locked = mp;
 
     if( !ptr ) {
+        _mp_unlock( locked );
         return 0;
     }
 
@@ -462,10 +486,12 @@ int mp_free( mpool mp, void *ptr )
     }
 
     if( !mp ) {
+        _mp_unlock( locked );
         return 0;
     }
 
     if( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MBF_LOCKED ) {
+        _mp_unlock( locked );
         return 0;
     }
 
@@ -474,6 +500,7 @@ int mp_free( mpool mp, void *ptr )
     }
 
     ( ( ( struct _mblk * ) ptr ) - 1 )->flags = 0;
+    _mp_unlock( locked );
     return 1;
 }
 
