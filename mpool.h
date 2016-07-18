@@ -49,7 +49,6 @@ struct _mpool;
 typedef struct _mblk {
     unsigned short signature;
     unsigned short flags;
-    struct _mpool *mp;
     size_t size;
 } *mblk;
 
