@@ -65,7 +65,7 @@ typedef enum _mp_flags {
 typedef struct _mpool {
     size_t id;
 #ifndef __WINDOWS__
-    pthread_mutex_t lock;
+    pthread_spinlock_t lock;
 #else
     long lock;
 #endif
@@ -79,8 +79,8 @@ typedef struct _mpool {
 } *mpool;
 
 #ifndef __WINDOWS__
-# define _mp_lock(mp)    pthread_mutex_lock(&(mp)->lock)
-# define _mp_unlock(mp)  pthread_mutex_unlock(&(mp)->lock)
+# define _mp_lock(mp)    pthread_spin_lock(&(mp)->lock)
+# define _mp_unlock(mp)  pthread_spin_unlock(&(mp)->lock)
 #else
 # define _mp_lock(mp)    EnterCriticalSection(&(mp)->lock)
 # define _mp_unlock(mp)  LeaveCriticalSection(&(mp)->lock)

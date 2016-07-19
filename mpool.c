@@ -149,7 +149,7 @@ mpool mp_create( size_t size, mp_flags flags )
     }
 
 #ifndef __WINDOWS__
-    pthread_mutex_init( &mp->lock, NULL );
+    pthread_spin_init( &mp->lock, 0 );
 #else
     mp->lock = 0;
 #endif
@@ -191,7 +191,7 @@ void mp_destroy( mpool mp )
         }
 
 #ifndef __WINDOWS__
-        pthread_mutex_destroy( &mp->lock );
+        //pthread_mutex_destroy( &mp->lock );
 #else
         mp->lock = 0;
 #endif
