@@ -190,11 +190,7 @@ void mp_destroy( mpool mp )
             mp_destroy( mp->next );
         }
 
-#ifndef __WINDOWS__
-        //pthread_mutex_destroy( &mp->lock );
-#else
         mp->lock = 0;
-#endif
         free( mp );
     }
 }
@@ -344,7 +340,7 @@ void *mp_alloc( mpool mp, size_t size )
     size_t largest_pool_size;
     size_t workhorse;
     MP_SET( mp );
-    _mp_lock( mp );
+    __lock( mp->lock );
     largest_pool_size = mp->size;
     workhorse = 0;
     MS_ALIGN( size, MBLK_MIN );
@@ -369,7 +365,7 @@ void *mp_alloc( mpool mp, size_t size )
                                    mp->flags );
 
         if( !newpool ) {
-            _mp_unlock( mp );
+            __unlock( mp->lock );
             return NULL;
         }
 
@@ -395,7 +391,7 @@ void *mp_alloc( mpool mp, size_t size )
         ptr = _mp_alloc( mp, size );
     }
 
-    _mp_unlock( mp );
+    __unlock( mp->lock );
     return ptr;
 }
 
@@ -456,7 +452,7 @@ void *mp_realloc( mpool mp, void *src, size_t size )
         }
     }
 
-    _mp_unlock( mp );
+    __unlock( mp->lock );
 
     if( dest ) {
         mp_free( mp, src );
@@ -469,11 +465,11 @@ int mp_free( mpool mp, void *ptr )
 {
     mpool locked;
     MP_SET( mp );
-    _mp_lock( mp );
+    __lock( mp->lock );
     locked = mp;
 
     if( !ptr ) {
-        _mp_unlock( locked );
+        __unlock( locked->lock );
         return 0;
     }
 
@@ -486,12 +482,12 @@ int mp_free( mpool mp, void *ptr )
     }
 
     if( !mp ) {
-        _mp_unlock( locked );
+        __unlock( locked->lock );
         return 0;
     }
 
     if( ( ( ( struct _mblk * ) ptr ) - 1 )->flags & MBF_LOCKED ) {
-        _mp_unlock( locked );
+        __unlock( locked->lock );
         return 0;
     }
 
@@ -500,7 +496,7 @@ int mp_free( mpool mp, void *ptr )
     }
 
     ( ( ( struct _mblk * ) ptr ) - 1 )->flags = 0;
-    _mp_unlock( locked );
+    __unlock( locked->lock );
     return 1;
 }
 

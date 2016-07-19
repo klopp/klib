@@ -14,13 +14,10 @@ extern "C"
 #endif
 
 #include "config.h"
+#include "_lock.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
-#ifndef __WINDOWS__
-# include <pthread.h>
-#endif
 
 #define MBLK_SIGNATURE  0x1515
 #define MBLK_MIN        (sizeof(struct _mblk))
@@ -64,11 +61,7 @@ typedef enum _mp_flags {
 
 typedef struct _mpool {
     size_t id;
-#ifndef __WINDOWS__
-    pthread_spinlock_t lock;
-#else
-    long lock;
-#endif
+    __lock_t lock;
     size_t size;
     mp_flags flags;
     struct _mblk *last;
@@ -77,14 +70,6 @@ typedef struct _mpool {
     char *pool;
     struct _mpool *next;
 } *mpool;
-
-#ifndef __WINDOWS__
-# define _mp_lock(mp)    pthread_spin_lock(&(mp)->lock)
-# define _mp_unlock(mp)  pthread_spin_unlock(&(mp)->lock)
-#else
-# define _mp_lock(mp)    EnterCriticalSection(&(mp)->lock)
-# define _mp_unlock(mp)  LeaveCriticalSection(&(mp)->lock)
-#endif
 
 typedef void ( *mp_walker )( const mpool mp, const mblk mb, void *data );
 

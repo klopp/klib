@@ -9,6 +9,7 @@
 #define LIST_H_
 
 #include "config.h"
+#include "_lock.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -30,7 +31,7 @@ typedef struct _List {
     LNode cursor;
     L_destructor destructor;
     size_t size;
-    volatile int lock;
+    __lock_t lock;
 } *List;
 
 /*
