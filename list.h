@@ -31,7 +31,7 @@ typedef struct _List {
     LNode cursor;
     L_destructor destructor;
     size_t size;
-    __lock_t lock;
+    __lock_t( lock );
 } *List;
 
 /*

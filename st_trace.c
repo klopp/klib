@@ -24,7 +24,7 @@ typedef struct {
 
 static Stack _st_stack = NULL;
 static size_t _st_over = 0;
-static __lock_t _st_lock = 0;
+static __lock_type _st_lock;
 
 /* ---------------------------------------------------------------------------*/
 static void _st_signal( int signo )
@@ -66,6 +66,7 @@ void _st_init( void )
         signal( SIGBUS, _st_signal );
         signal( SIGFPE, _st_signal );
         signal( SIGSYS, _st_signal );
+        __initlock( _st_lock );
     }
 }
 

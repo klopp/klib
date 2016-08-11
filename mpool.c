@@ -188,7 +188,6 @@ void mp_destroy( mpool mp )
             mp_destroy( mp->next );
         }
 
-        mp->lock = 0;
         free( mp );
     }
 }

@@ -22,6 +22,7 @@ List lcreate( L_destructor destructor )
     }
 
     list->destructor = destructor;
+    __initlock( list->lock );
     return list;
 }
 

@@ -61,7 +61,7 @@ typedef enum _mp_flags {
 
 typedef struct _mpool {
     size_t id;
-    __lock_t lock;
+    __lock_t( lock );
     size_t size;
     mp_flags flags;
     struct _mblk *last;
