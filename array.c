@@ -142,6 +142,8 @@ static int a_compare_strings( const void *a, const void *b )
 
 SArray sasort( SArray array )
 {
+    __lock( array->lock );
     qsort( array->data, array->size, sizeof( void * ), a_compare_strings );
+    __unlock( array->lock );
     return array;
 }
