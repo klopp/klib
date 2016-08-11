@@ -6,7 +6,8 @@
 #include "t_diff.h"
 
 /* ---------------------------------------------------------------------------*/
-unsigned long t_diff( struct timeval *start, struct timeval *end ) {
+unsigned long t_diff( struct timeval *start, struct timeval *end )
+{
     struct timeval lend;
 
     if( !end ) {
