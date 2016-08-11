@@ -11,12 +11,14 @@
 #ifndef __WINDOWS__
 # include <pthread.h>
 typedef pthread_spinlock_t __lock_t;
-# define __lock(lock)    pthread_spin_lock(&lock)
-# define __unlock(lock)  pthread_spin_unlock(&lock)
+# define __initlock(lock)   pthread_spin_init( &lock, 0 )
+# define __lock(lock)       pthread_spin_lock(&lock)
+# define __unlock(lock)     pthread_spin_unlock(&lock)
 #else
 # typedef __lock_t       long
-# define __lock(lock)    EnterCriticalSection(&lock)
-# define __unlock(lock)  LeaveCriticalSection(&lock)
+# define __initlock(lock)   lock = 0
+# define __lock(lock)       EnterCriticalSection(&lock)
+# define __unlock(lock)     LeaveCriticalSection(&lock)
 #endif
 
 #endif /* LOCK_H_ */

@@ -63,44 +63,46 @@ static mblk MB_NEXT( mblk mb )
 
 #else
 
-#define MP_VALID( ptr, mp ) \
+#define MP_VALID(ptr, mp) \
     ((char *)(ptr) >= (mp)->min && \
     (char *)(ptr) <= (mp)->max && \
     (((struct _mblk *)(ptr)) - 1)->signature == MBLK_SIGNATURE)
 
-#define MB_VALID( mb, mp ) \
+#define MB_VALID(mb, mp) \
     ((char *)((mb)+1) >= (mp)->min && \
     (char *)((mb)+1) <= (mp)->max && \
     (mb)->signature == MBLK_SIGNATURE)
 
-#define MB_NEXT( mb ) \
+#define MB_NEXT(mb) \
         (mblk)((char *)(mb) + sizeof(struct _mblk) + (mb)->size)
 
-#define _mp_malloc( size ) malloc( (size) )
+#define _mp_malloc(size) malloc( (size) )
 
 #endif
 
-#define MS_ALIGN( size, min ) \
+#define MS_ALIGN(size, min) \
     if( (size) < (min) ) (size) = (min); \
     (size) += (sizeof(size_t) - 1); \
     (size) &= ~(sizeof(size_t) - 1)
 
-#define MP_SWAP( tmp, a, b ) \
+#define MP_SWAP(tmp, a, b) \
     (tmp) = (a); \
     (a) = (b); \
     (b) = (tmp)
 
 static mpool _mp = NULL;
 static int _mp_atexit = 0;
+
 static void _mp_destroy( void )
 {
     mp_destroy( _mp );
 }
 
-#define MP_SET( mp ) \
+#define MP_SET(mp) \
     if( !mp ) { \
     if( !_mp ) _mp = mp_create( 0, MPF_EXPAND ); \
     mp = _mp; }
+
 /*
  * Recursive check for all mpools in chain:
  */
@@ -148,11 +150,7 @@ mpool mp_create( size_t size, mp_flags flags )
         atexit( _mp_destroy );
     }
 
-#ifndef __WINDOWS__
-    pthread_spin_init( &mp->lock, 0 );
-#else
-    mp->lock = 0;
-#endif
+    __initlock( mp->lock );
     mp->id = 0;
     mp->size = size;
     mp->next = NULL;
@@ -351,7 +349,8 @@ void *mp_alloc( mpool mp, size_t size )
         ptr = _mp_alloc( current_pool, size );
 
         if( !ptr ) {
-            if( ( !( mp->flags & MPF_FAST ) && _mp_defragment_pool( current_pool ) ) ) {
+            if( ( !( mp->flags & MPF_FAST ) &&
+                    _mp_defragment_pool( current_pool ) ) ) {
                 ptr = _mp_alloc( current_pool, size );
             }
         }
@@ -516,7 +515,7 @@ static char *_mp_format_size( unsigned long size, char *bsz )
     else {
         if( size % ( 1024 * 1024 ) ) {
             char *ptr;
-            int  i = 4;
+            int i = 4;
             sprintf( bsz, "%lu.%lu", size / ( 1024 * 1024 ),
                      size % ( 1024 * 1024 ) );
             ptr = strchr( bsz, '.' );
@@ -583,7 +582,7 @@ void mp_dump( mpool mp, FILE *fout, size_t maxw )
         fprintf( fout, "ID: %zu, size: %s, ", current->id,
                  _mp_format_size( current->size, bsz ) );
         fprintf( fout, "blocks: %zu, internal: %s\n", mb_total,
-                 _mp_format_size( mb_total * sizeof( struct _mblk ) , bsz ) );
+                 _mp_format_size( mb_total * sizeof( struct _mblk ), bsz ) );
 #else
         fprintf( fout, "ID: %u, size: %s, ", current->id,
                  _mp_format_size( current->size, bsz ) );

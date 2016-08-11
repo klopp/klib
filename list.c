@@ -6,7 +6,6 @@
  */
 
 #include "list.h"
-
 #include "_lock.h"
 
 void list_Free( void *data )
