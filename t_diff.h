@@ -3,9 +3,6 @@
  *      Author: klopp
  */
 
-/*
- *  That's All, Folks!
- */
 #ifndef T_DIFF_H_
 #define T_DIFF_H_
 
@@ -33,3 +30,7 @@ unsigned long t_diff( struct timeval *start, struct timeval *end );
 
 
 #endif /* T_DIFF_H_ */
+
+/*
+ *  That's All, Folks!
+ */
