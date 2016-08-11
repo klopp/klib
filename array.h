@@ -9,6 +9,7 @@
 #define ARRAY_H_
 
 #include "config.h"
+#include "_lock.h"
 
 #define ARR_IDX_EXPAND(idx) (idx) + ((idx)/2)
 
@@ -24,6 +25,7 @@ typedef struct _Array {
     void **data;
     A_destructor destructor;
     size_t size;
+    __lock_t( lock );
 } *Array;
 
 Array acreate( size_t size, A_destructor destructor );
