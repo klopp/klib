@@ -12,13 +12,23 @@
 #include <sys/time.h>
 
 #if defined(__cplusplus)
-  extern "C" {
+extern "C" {
 #endif
 
-unsigned long t_diff(struct timeval *start, struct timeval *end);
+/*
+ * Simple usage:
+ *
+ *      struct timeval start;
+ *      gettimeofday( &start, NULL );
+ *
+ *      ... some code ...
+ *
+ *      unsigned long nanoseconds = t_diff( &start, NULL );
+ */
+unsigned long t_diff( struct timeval *start, struct timeval *end );
 
 #if defined(__cplusplus)
-  }; /* extern "C" */
+}; /* extern "C" */
 #endif
 
 
