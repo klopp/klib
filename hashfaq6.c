@@ -9,25 +9,39 @@
 
 static unsigned hash = 0;
 
-unsigned hash_faq6( unsigned startval, const void *buf, size_t size ) {
+unsigned hash_faq6( const void *buf, size_t size )
+{
+    return hash_faq6_update( 0, buf, size );
+}
+
+unsigned shash_faq6( const char *buf )
+{
+    return shash_faq6_update( 0, buf );
+}
+
+unsigned hash_faq6_update( unsigned startval, const void *buf, size_t size )
+{
     for( hash = startval; size; size-- ) {
-        hash += *( ( unsigned char * )buf );
+        hash += *( ( unsigned char * ) buf );
         hash += ( hash << 10 );
         hash ^= ( hash >> 6 );
-        buf = ( unsigned char * )buf + 1;
+        buf = ( unsigned char * ) buf + 1;
     }
+
     hash += ( hash << 3 );
     hash ^= ( hash >> 11 );
     hash += ( hash << 15 );
     return hash;
 }
 
-unsigned shash_faq6( unsigned startval, const char *buf ) {
+unsigned shash_faq6_update( unsigned startval, const char *buf )
+{
     for( hash = startval; *buf; buf++ ) {
-        hash += *( ( unsigned char * )buf );
+        hash += *( ( unsigned char * ) buf );
         hash += ( hash << 10 );
         hash ^= ( hash >> 6 );
     }
+
     hash += ( hash << 3 );
     hash ^= ( hash >> 11 );
     hash += ( hash << 15 );
