@@ -164,7 +164,7 @@ unsigned int _HT_Expand( HTable ht )
 
     memcpy( items, ht->items, ht->size * sizeof( HTItem ) );
 
-    for( i = 0; i < ht->nitems; i++ ) {
+    for( i = 0; i < ht->size; i++ ) {
         cur = ht->items[i];
         prev = NULL;
 
@@ -338,7 +338,7 @@ unsigned int HT_set( HTable ht, const void *key, size_t key_size, void *data )
     ht->error = 0;
     ht->nitems++;
 
-    if( ht->nitems > ht->size + HT_GROW_FACTOR ) {
+    if( ht->nitems > ht->size/* + HT_GROW_FACTOR*/ ) {
         _HT_Expand( ht );
     }
 
