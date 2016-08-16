@@ -229,74 +229,65 @@ unsigned int HT_set( HTable ht, const void *key, size_t key_size, void *data )
 {
     unsigned int hash;
     HTItem e;
-    HTItem cursor;
+    HTItem item;
     size_t idx;
     __lock( ht->lock );
-    ht->error = 0;
-    e = Malloc( sizeof( struct _HTItem ) );
-
-    if( !e ) {
-        ht->error = ENOMEM;
-        __unlock( ht->lock );
-        return 0;
-    }
-
-    e->key = Malloc( key_size );
-
-    if( !e->key ) {
-        ht->error = ENOMEM;
-        Free( e );
-        __unlock( ht->lock );
-        return 0;
-    }
-
-    memcpy( e->key, key, key_size );
-    e->key_size = key_size;
-    e->data = data;
-    e->next = NULL;
     hash = ht->hf( key, key_size );
-    e->hash = hash;
     idx = hash & ht->mask;
+    e = ht->items[idx];
 
-    if( !ht->items[idx] ) {
-        ht->items[idx] = e;
-        ht->nitems++;
-        __unlock( ht->lock );
-        return hash;
-    }
-
-    cursor = ht->items[idx];
-
-    while( 1 ) {
-        /*
-         * Item found, check key:
-         */
-        if( cursor->key_size == key_size && !memcmp( cursor->key, key, key_size ) ) {
-            /*
-             * Keys equals, destroy & replace old data:
-             */
+    while( e ) {
+        if( e->key_size == key_size && !memcmp( e->key, key, key_size ) ) {
             if( ht->destructor ) {
-                ht->destructor( cursor->data );
+                ht->destructor( e->data );
             }
 
-            cursor->data = data;
-            Free( e->key );
-            Free( e );
-            ht->nitems++;
+            e->data = data;
+            ht->error = 0;
             __unlock( ht->lock );
             return hash;
         }
 
-        if( cursor->next ) {
-            cursor = cursor->next;
-            continue;
-        }
-
-        cursor->next = e;
-        ht->nitems++;
-        break;
+        e = e->next;
     }
 
+    item = Malloc( sizeof( struct _HTItem ) );
+
+    if( !item ) {
+        ht->error = ENOMEM;
+        __unlock( ht->lock );
+        return 0;
+    }
+
+    item->key = Malloc( key_size );
+
+    if( !item->key ) {
+        ht->error = ENOMEM;
+        Free( item );
+        __unlock( ht->lock );
+        return 0;
+    }
+
+    memcpy( item->key, key, key_size );
+    item->key_size = key_size;
+    item->data = data;
+    item->next = NULL;
+    item->hash = hash;
+    e = ht->items[idx];
+
+    if( !e ) {
+        ht->items[idx] = item;
+    }
+    else {
+        while( e->next ) {
+            e = e->next;
+        }
+
+        e->next = item;
+    }
+
+    ht->error = 0;
+    ht->nitems++;
     __unlock( ht->lock );
     return hash;
 }
