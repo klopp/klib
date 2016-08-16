@@ -7,16 +7,17 @@
 #define HTABLE_H_
 
 #if defined(__cplusplus)
-  extern "C" {
+extern "C" {
 #endif
 
-  /*
- *  Created on: 11 авг. 2016 г.
- *      Author: Vsevolod Lutovinov <klopp@yandex.ru>
- */
+/*
+*  Created on: 11 авг. 2016 г.
+*      Author: Vsevolod Lutovinov <klopp@yandex.ru>
+*/
 
 #include "config.h"
 #include "_lock.h"
+#include <errno.h>
 
 typedef struct _HTItem {
     void *key;
@@ -38,19 +39,20 @@ typedef void ( *HT_Destructor )( void *data );
 
 typedef struct _HTable {
 
-  size_t mask;
-  size_t size;
-  size_t nitems;
-  HTItem *items;
-  HT_Destructor destructor;
-  HT_Hash_Function hf;
-  __lock_t( lock );
+    size_t mask;
+    size_t size;
+    size_t nitems;
+    HTItem *items;
+    HT_Destructor destructor;
+    HT_Hash_Function hf;
+    int error;
+    __lock_t( lock );
 } *HTable;
 
-HTable HT_create( HT_Hash_Functions hf, HT_Destructor destructor );
+HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor );
 void HT_clear( HTable ht );
 void HT_destroy( HTable ht );
-
+size_t HT_maxdepth( HTable ht );
 /*
  * HT_set() return internal key value:
  */
