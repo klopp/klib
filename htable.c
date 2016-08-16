@@ -149,7 +149,58 @@ size_t HT_maxdepth( HTable ht )
  * Expand hash table. Return 1 (scuuess) or 0 (failed). Do not change  internal
  * error code.
  */
-unsigned int _HT_Expand( HTable ht )
+int _HT_Reduce( HTable ht )
+{
+    size_t newsize = ht->size / 2;
+    size_t newmask;
+    HTItem *items;
+    HTItem cur;
+    size_t i;
+
+    if( newsize < HT_MIN_SIZE ) {
+        return 1;
+    }
+
+    items = Calloc( newsize, sizeof( HTItem ) );
+
+    if( !items ) {
+        return 0;
+    }
+
+    memcpy( items, ht->items, newsize * sizeof( HTItem ) );
+    newmask = newsize - 1;
+
+    for( i = newsize; i < ht->size; i++ ) {
+        if( !ht->items[i] ) {
+            continue;
+        }
+
+        if( !items[i - newsize] ) {
+            items[i - newsize] = ht->items[i];
+        }
+        else {
+            cur = items[i - newsize];
+
+            while( cur->next ) {
+                cur = cur->next;
+            }
+
+            cur->next = ht->items[i];
+        }
+    }
+
+    Free( ht->items );
+    ht->items = items;
+    ht->size = newsize;
+    ht->mask = newmask;
+    return 1;
+}
+
+/*
+ * Expand hash table. Return 1 (scuuess) or 0 (failed). Do not change  internal
+ * error code.
+ */
+int _HT_Expand( HTable ht )
 {
     size_t newsize = ht->size * 2;
     size_t newmask = newsize - 1;
@@ -243,7 +294,7 @@ int HT_delete( HTable ht, const void *key, size_t key_size )
     while( cursor ) {
         if( cursor->key_size == key_size && !memcmp( cursor->key, key, key_size ) ) {
             if( !e ) {
-                ht->items[idx]->data = cursor->next;
+                ht->items[idx] = cursor->next;
             }
             else {
                 e->next = cursor->next;
@@ -258,6 +309,11 @@ int HT_delete( HTable ht, const void *key, size_t key_size )
             ht->nitems--;
             ht->error = 0;
             rc++;
+
+            if( ht->nitems < ht->size / 2 ) {
+                _HT_Reduce( ht );
+            }
+
             break;
         }
 
