@@ -49,7 +49,7 @@ typedef struct _HTable {
     __lock_t( lock );
 } *HTable;
 
-HTable HT_create( HT_Hash_Functions hf, HT_Destructor destructor );
+HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor );
 void HT_clear( HTable ht );
 void HT_destroy( HTable ht );
 size_t HT_maxdepth( HTable ht );

@@ -8,7 +8,7 @@
 #include "../klib/crc.h"
 #include "../klib/hash.h"
 
-#define HT_MIN_SIZE         64
+#define HT_MIN_SIZE         (2 << 5)
 
 /*
  * Because crc16() return short:
@@ -31,7 +31,7 @@ static struct {
 /*
  * Create hash table with given initial size. Return created table or NULL.
  */
-HTable HT_create( HT_Hash_Functions hf, HT_Destructor destructor )
+HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
 {
     size_t i;
     HTable ht = Malloc( sizeof( struct _HTable ) );
@@ -40,7 +40,21 @@ HTable HT_create( HT_Hash_Functions hf, HT_Destructor destructor )
         return NULL;
     }
 
-    ht->size = HT_MIN_SIZE;
+    /*
+     * Round up to the next highest power of 2:
+     */
+    i = 1;
+
+    while( i < size ) {
+        i = i * 2;
+    }
+
+    ht->size = i;
+
+    if( ht->size < HT_MIN_SIZE ) {
+        ht->size = HT_MIN_SIZE;
+    }
+
     ht->items = Calloc( ht->size, sizeof( struct _HTItem ) );
 
     if( !ht->items ) {

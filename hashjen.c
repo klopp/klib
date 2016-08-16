@@ -1,5 +1,5 @@
 /*
- * hashfaq6.c, part of "klib" project.
+ * hashjen.c, part of "klib" project.
  *
  *  Created on: 24.05.2015, 03:25
  *      Author: Vsevolod Lutovinov <klopp@yandex.ru>
