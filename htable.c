@@ -9,6 +9,7 @@
 #include "../klib/hash.h"
 
 #define HT_MIN_SIZE         64
+#define HT_DEPTH_LIMIT      1
 
 /*
  * Because crc16() return short:
@@ -31,7 +32,7 @@ static struct {
 /*
  * Create hash table with given initial size. Return created table or NULL.
  */
-HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
+HTable HT_create( HT_Hash_Functions hf, HT_Destructor destructor )
 {
     size_t i;
     HTable ht = Malloc( sizeof( struct _HTable ) );
@@ -40,7 +41,7 @@ HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
         return NULL;
     }
 
-    ht->size = size > HT_MIN_SIZE ? size : HT_MIN_SIZE;
+    ht->size = HT_MIN_SIZE;
     ht->items = Calloc( ht->size, sizeof( struct _HTItem ) );
 
     if( !ht->items ) {
@@ -151,16 +152,17 @@ size_t HT_maxdepth( HTable ht )
  */
 int _HT_Reduce( HTable ht )
 {
-    size_t newsize = ht->size / 2;
+    size_t newsize;
     size_t newmask;
     HTItem *items;
     HTItem cur;
     size_t i;
 
-    if( newsize < HT_MIN_SIZE ) {
+    if( ht->size < HT_MIN_SIZE ) {
         return 1;
     }
 
+    newsize = ht->size / 2;
     items = Calloc( newsize, sizeof( HTItem ) );
 
     if( !items ) {
@@ -215,16 +217,16 @@ int _HT_Expand( HTable ht )
     memcpy( items, ht->items, ht->size * sizeof( HTItem ) );
 
     for( i = 0; i < ht->size; i++ ) {
-        cur = ht->items[i];
         prev = NULL;
+        cur = items[i];
 
         while( cur ) {
             if( ( cur->hash & ht->mask ) != ( cur->hash & newmask ) ) {
-                if( prev ) {
-                    prev->next = cur->next;
+                if( !prev ) {
+                    items[i] = cur->next;
                 }
                 else {
-                    items[i] = cur->next;
+                    prev->next = cur->next;
                 }
 
                 temp = cur->next;
@@ -377,19 +379,8 @@ unsigned int HT_set( HTable ht, const void *key, size_t key_size, void *data )
     item->data = data;
     item->next = NULL;
     item->hash = hash;
-    e = ht->items[idx];
-
-    if( !e ) {
-        ht->items[idx] = item;
-    }
-    else {
-        while( e->next ) {
-            e = e->next;
-        }
-
-        e->next = item;
-    }
-
+    item->next = ht->items[idx];
+    ht->items[idx] = item;
     ht->error = 0;
     ht->nitems++;
 
