@@ -134,7 +134,7 @@ void HT_destroy( HTable ht )
 size_t HT_maxdepth( HTable ht )
 {
     size_t i;
-    size_t maxdepth = 0;
+    size_t maxdepth;
     __lock( ht->lock );
     ht->error = 0;
     maxdepth = 0;
@@ -168,7 +168,6 @@ int _HT_Reduce( HTable ht )
     size_t newsize;
     size_t newmask;
     HTItem *items;
-    HTItem cur;
     size_t i;
 
     if( ht->size < HT_MIN_SIZE ) {
@@ -186,6 +185,8 @@ int _HT_Reduce( HTable ht )
     newmask = newsize - 1;
 
     for( i = newsize; i < ht->size; i++ ) {
+        HTItem cur;
+
         if( !ht->items[i] ) {
             continue;
         }
@@ -218,20 +219,19 @@ int _HT_Reduce( HTable ht )
 int _HT_Expand( HTable ht )
 {
     size_t newsize = ht->size * 2;
-    size_t newmask = newsize - 1;
+    size_t newmask;
     size_t i;
-    HTItem cur, prev, temp;
     HTItem *items = Calloc( newsize, sizeof( HTItem ) );
 
     if( !items ) {
         return 0;
     }
 
+    newmask = newsize - 1;
     memcpy( items, ht->items, ht->size * sizeof( HTItem ) );
 
     for( i = 0; i < ht->size; i++ ) {
-        prev = NULL;
-        cur = items[i];
+        HTItem cur = items[i], prev = NULL, temp;
 
         while( cur ) {
             if( ( cur->hash & ht->mask ) != ( cur->hash & newmask ) ) {
@@ -268,7 +268,7 @@ int _HT_Expand( HTable ht )
 void *HT_get( HTable ht, const void *key, size_t key_size )
 {
     unsigned int hash;
-    HTItem e = NULL;
+    HTItem e;
     __lock( ht->lock );
     hash = ht->hf( key, key_size );
     e = ht->items[hash & ht->mask];
