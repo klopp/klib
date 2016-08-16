@@ -180,6 +180,7 @@ void *HT_get( HTable ht, const void *key, size_t key_size )
 int HT_delete( HTable ht, const void *key, size_t key_size )
 {
     unsigned int hash;
+    HTItem cursor;
     HTItem e;
     int rc;
     size_t idx;
@@ -188,54 +189,32 @@ int HT_delete( HTable ht, const void *key, size_t key_size )
     e = NULL;
     hash = ht->hf( key, key_size );
     idx = hash & ht->mask;
-    e = ht->items[idx];
+    cursor = ht->items[idx];
     ht->error = ENOKEY;
 
-    if( !e ) {
-        __unlock( ht->lock );
-        return rc;
-    }
-
-    if( !e->next ) {
-        if( ht->destructor ) {
-            ht->destructor( e->data );
-        }
-
-        Free( e->key );
-        Free( e );
-        ht->items[idx] = NULL;
-        ht->nitems--;
-        ht->error = 0;
-        rc++;
-    }
-    else {
-        HTItem cursor = e;
-        e = NULL;
-
-        while( cursor ) {
-            if( cursor->key_size == key_size && !memcmp( cursor->key, key, key_size ) ) {
-                if( !e ) {
-                    ht->items[idx]->data = cursor->next;
-                }
-                else {
-                    e->next = cursor->next;
-                }
-
-                if( ht->destructor ) {
-                    ht->destructor( cursor->data );
-                }
-
-                Free( cursor->key );
-                Free( cursor );
-                ht->nitems--;
-                ht->error = 0;
-                rc++;
-                break;
+    while( cursor ) {
+        if( cursor->key_size == key_size && !memcmp( cursor->key, key, key_size ) ) {
+            if( !e ) {
+                ht->items[idx]->data = cursor->next;
+            }
+            else {
+                e->next = cursor->next;
             }
 
-            e = cursor;
-            cursor = cursor->next;
+            if( ht->destructor ) {
+                ht->destructor( cursor->data );
+            }
+
+            Free( cursor->key );
+            Free( cursor );
+            ht->nitems--;
+            ht->error = 0;
+            rc++;
+            break;
         }
+
+        e = cursor;
+        cursor = cursor->next;
     }
 
     __unlock( ht->lock );
