@@ -9,7 +9,6 @@
 #include "../klib/hash.h"
 
 #define HT_MIN_SIZE         64
-#define HT_GROW_FACTOR      8
 
 /*
  * Because crc16() return short:
@@ -338,7 +337,7 @@ unsigned int HT_set( HTable ht, const void *key, size_t key_size, void *data )
     ht->error = 0;
     ht->nitems++;
 
-    if( ht->nitems > ht->size/* + HT_GROW_FACTOR*/ ) {
+    if( ht->nitems > ht->size ) {
         _HT_Expand( ht );
     }
 
