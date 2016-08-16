@@ -152,17 +152,47 @@ size_t HT_maxdepth( HTable ht )
  */
 unsigned int _HT_Expand( HTable ht )
 {
-    size_t size = ht->size * 2;
-    HTItem *items = Calloc( size, sizeof( struct HTItem ) );
+    size_t newsize = ht->size * 2;
+    size_t newmask = newsize - 1;
+    size_t i;
+    HTItem cur, prev, temp;
+    HTItem *items = Calloc( newsize, sizeof( HTItem ) );
 
     if( !items ) {
         return 0;
     }
 
-    memcpy( items, ht->items, ht->size * sizeof( struct HTItem ) );
-    ht->items = items;
+    memcpy( items, ht->items, ht->size * sizeof( HTItem ) );
+
+    for( i = 0; i < ht->nitems; i++ ) {
+        cur = ht->items[i];
+        prev = NULL;
+
+        while( cur ) {
+            if( ( cur->hash & ht->mask ) != ( cur->hash & newmask ) ) {
+                if( prev ) {
+                    prev->next = cur->next;
+                }
+                else {
+                    items[i] = cur->next;
+                }
+
+                temp = cur->next;
+                cur->next = items[cur->hash & newmask];
+                items[cur->hash & newmask] = cur;
+                cur = temp;
+            }
+            else {
+                prev = cur;
+                cur = cur->next;
+            }
+        }
+    }
+
     Free( ht->items );
-    ht->size = size;
+    ht->items = items;
+    ht->size = newsize;
+    ht->mask = newmask;
     return 1;
 }
 
@@ -179,15 +209,13 @@ void *HT_get( HTable ht, const void *key, size_t key_size )
     e = ht->items[hash & ht->mask];
     ht->error = ENOKEY;
 
-    if( e->next ) {
-        while( e ) {
-            if( e->key_size == key_size && !memcmp( e->key, key, key_size ) ) {
-                ht->error = 0;
-                break;
-            }
-
-            e = e->next;
+    while( e ) {
+        if( e->key_size == key_size && !memcmp( e->key, key, key_size ) ) {
+            ht->error = 0;
+            break;
         }
+
+        e = e->next;
     }
 
     __unlock( ht->lock );
