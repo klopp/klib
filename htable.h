@@ -28,7 +28,7 @@ typedef struct _HTItem {
 } *HTItem;
 
 typedef enum {
-    HF_HASH_FAQ6, HF_HASH_LY, HF_HASH_ROT13, HF_HASH_RS, HF_HASH_CRC16,
+    HF_HASH_JEN, HF_HASH_LY, HF_HASH_ROT13, HF_HASH_RS, HF_HASH_CRC16,
     HF_HASH_CRC32
 }
 HT_Hash_Functions;

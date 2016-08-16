@@ -9,17 +9,17 @@
 
 static unsigned hash = 0;
 
-unsigned hash_faq6( const void *buf, size_t size )
+unsigned hash_jen( const void *buf, size_t size )
 {
-    return hash_faq6_update( 0, buf, size );
+    return hash_jen_update( 0, buf, size );
 }
 
-unsigned shash_faq6( const char *buf )
+unsigned shash_jen( const char *buf )
 {
-    return shash_faq6_update( 0, buf );
+    return shash_jen_update( 0, buf );
 }
 
-unsigned hash_faq6_update( unsigned startval, const void *buf, size_t size )
+unsigned hash_jen_update( unsigned startval, const void *buf, size_t size )
 {
     for( hash = startval; size; size-- ) {
         hash += *( ( unsigned char * ) buf );
@@ -34,7 +34,7 @@ unsigned hash_faq6_update( unsigned startval, const void *buf, size_t size )
     return hash;
 }
 
-unsigned shash_faq6_update( unsigned startval, const char *buf )
+unsigned shash_jen_update( unsigned startval, const char *buf )
 {
     for( hash = startval; *buf; buf++ ) {
         hash += *( ( unsigned char * ) buf );

@@ -9,7 +9,6 @@
 #include "../klib/hash.h"
 
 #define HT_MIN_SIZE         64
-#define HT_DEPTH_LIMIT      1
 
 /*
  * Because crc16() return short:
@@ -23,7 +22,7 @@ static struct {
     HT_Hash_Functions idx;
     HT_Hash_Function hf;
 
-} _hf[] = { { HF_HASH_FAQ6, hash_faq6 }, { HF_HASH_LY, hash_ly }, { HF_HASH_ROT13, hash_rot13 }, {
+} _hf[] = { { HF_HASH_JEN, hash_jen }, { HF_HASH_LY, hash_ly }, { HF_HASH_ROT13, hash_rot13 }, {
         HF_HASH_RS,
         hash_rs
     }, { HF_HASH_CRC16, _crc16 }, { HF_HASH_CRC32, crc32 }
