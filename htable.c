@@ -8,7 +8,8 @@
 #include "../klib/crc.h"
 #include "../klib/hash.h"
 
-#define HT_MIN_SIZE     1024
+#define HT_MIN_SIZE         64
+#define HT_GROW_FACTOR      8
 
 /*
  * Because crc16() return short:
@@ -143,6 +144,26 @@ size_t HT_maxdepth( HTable ht )
 
     __unlock( ht->lock );
     return maxdepth;
+}
+
+/*
+ * Expand hash table. Return 1 (scuuess) or 0 (failed). Do not change  internal
+ * error code.
+ */
+unsigned int _HT_Expand( HTable ht )
+{
+    size_t size = ht->size * 2;
+    HTItem *items = Calloc( size, sizeof( struct HTItem ) );
+
+    if( !items ) {
+        return 0;
+    }
+
+    memcpy( items, ht->items, ht->size * sizeof( struct HTItem ) );
+    ht->items = items;
+    Free( ht->items );
+    ht->size = size;
+    return 1;
 }
 
 /*
@@ -288,6 +309,11 @@ unsigned int HT_set( HTable ht, const void *key, size_t key_size, void *data )
 
     ht->error = 0;
     ht->nitems++;
+
+    if( ht->nitems > ht->size + HT_GROW_FACTOR ) {
+        _HT_Expand( ht );
+    }
+
     __unlock( ht->lock );
     return hash;
 }
