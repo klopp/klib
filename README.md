@@ -1,3 +1,14 @@
+# htable.h
+
+Hash tables (faster than std::map)
+
+```c
+    HTable ht = HT_create( 0, 0, NULL );
+    HT_set_int( ht, 1, "1" ); /* { 1 => "1" } */ 
+    HT_set_c( ht, "2", "2" ); /* { "2" => "2" } */
+    /* ... */
+```
+
 # trycatch.h
 
 ## #define TRYCATCH_NESTING Some_value
