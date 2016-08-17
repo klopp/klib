@@ -38,8 +38,6 @@ typedef unsigned int ( *HT_Hash_Function )( const void *data, size_t size );
 typedef void ( *HT_Destructor )( void *data );
 
 typedef struct _HTable {
-
-    /*size_t mask;*/
     size_t size;
     size_t nitems;
     HTItem *items;

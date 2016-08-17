@@ -65,7 +65,6 @@ HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
 
     ht->nitems = 0;
     ht->hf = NULL;
-    /*ht->mask = ht->size - 1;*/
     ht->destructor = destructor;
     ht->error = 0;
     __initlock( ht->lock );
@@ -167,7 +166,6 @@ size_t HT_maxdepth( HTable ht )
 int _HT_Reduce( HTable ht )
 {
     size_t newsize;
-    size_t newmask;
     HTItem *items;
     size_t i;
 
@@ -183,7 +181,6 @@ int _HT_Reduce( HTable ht )
     }
 
     memcpy( items, ht->items, newsize * sizeof( HTItem ) );
-    newmask = newsize - 1;
 
     for( i = newsize; i < ht->size; i++ ) {
         HTItem cur;
@@ -209,7 +206,6 @@ int _HT_Reduce( HTable ht )
     Free( ht->items );
     ht->items = items;
     ht->size = newsize;
-    /*ht->mask = newmask;*/
     return 1;
 }
 
@@ -237,7 +233,7 @@ int _HT_Expand( HTable ht )
         HTItem cur = items[i], prev = NULL, temp;
 
         while( cur ) {
-            if( ( cur->hash & /*ht->*/mask ) != ( cur->hash & newmask ) ) {
+            if( ( cur->hash & mask ) != ( cur->hash & newmask ) ) {
                 if( !prev ) {
                     items[i] = cur->next;
                 }
@@ -260,7 +256,6 @@ int _HT_Expand( HTable ht )
     Free( ht->items );
     ht->items = items;
     ht->size = newsize;
-    /*ht->mask = newmask;*/
     return 1;
 }
 
