@@ -39,7 +39,7 @@ typedef void ( *HT_Destructor )( void *data );
 
 typedef struct _HTable {
 
-    size_t mask;
+    /*size_t mask;*/
     size_t size;
     size_t nitems;
     HTItem *items;

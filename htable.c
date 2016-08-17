@@ -9,6 +9,7 @@
 #include "../klib/hash.h"
 
 #define HT_MIN_SIZE         (2 << 5)
+#define HT_HASH_MASK(ht)    (ht->size-1)
 
 /*
  * Because crc16() return short:
@@ -64,7 +65,7 @@ HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
 
     ht->nitems = 0;
     ht->hf = NULL;
-    ht->mask = ht->size - 1;
+    /*ht->mask = ht->size - 1;*/
     ht->destructor = destructor;
     ht->error = 0;
     __initlock( ht->lock );
@@ -208,7 +209,7 @@ int _HT_Reduce( HTable ht )
     Free( ht->items );
     ht->items = items;
     ht->size = newsize;
-    ht->mask = newmask;
+    /*ht->mask = newmask;*/
     return 1;
 }
 
@@ -220,6 +221,7 @@ int _HT_Expand( HTable ht )
 {
     size_t newsize = ht->size * 2;
     size_t newmask;
+    size_t mask;
     size_t i;
     HTItem *items = Calloc( newsize, sizeof( HTItem ) );
 
@@ -227,6 +229,7 @@ int _HT_Expand( HTable ht )
         return 0;
     }
 
+    mask = HT_HASH_MASK( ht );
     newmask = newsize - 1;
     memcpy( items, ht->items, ht->size * sizeof( HTItem ) );
 
@@ -234,7 +237,7 @@ int _HT_Expand( HTable ht )
         HTItem cur = items[i], prev = NULL, temp;
 
         while( cur ) {
-            if( ( cur->hash & ht->mask ) != ( cur->hash & newmask ) ) {
+            if( ( cur->hash & /*ht->*/mask ) != ( cur->hash & newmask ) ) {
                 if( !prev ) {
                     items[i] = cur->next;
                 }
@@ -257,7 +260,7 @@ int _HT_Expand( HTable ht )
     Free( ht->items );
     ht->items = items;
     ht->size = newsize;
-    ht->mask = newmask;
+    /*ht->mask = newmask;*/
     return 1;
 }
 
@@ -271,7 +274,7 @@ void *HT_get( HTable ht, const void *key, size_t key_size )
     HTItem e;
     __lock( ht->lock );
     hash = ht->hf( key, key_size );
-    e = ht->items[hash & ht->mask];
+    e = ht->items[hash & HT_HASH_MASK( ht )];
     ht->error = ENOKEY;
 
     while( e ) {
@@ -302,7 +305,7 @@ int HT_delete( HTable ht, const void *key, size_t key_size )
     rc = 0;
     e = NULL;
     hash = ht->hf( key, key_size );
-    idx = hash & ht->mask;
+    idx = hash & HT_HASH_MASK( ht );
     cursor = ht->items[idx];
     ht->error = ENOKEY;
 
@@ -352,7 +355,7 @@ unsigned int HT_set( HTable ht, const void *key, size_t key_size, void *data )
     size_t idx;
     __lock( ht->lock );
     hash = ht->hf( key, key_size );
-    idx = hash & ht->mask;
+    idx = hash & HT_HASH_MASK( ht );
     e = ht->items[idx];
 
     while( e ) {
