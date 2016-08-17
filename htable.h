@@ -51,10 +51,8 @@ HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor );
 void HT_clear( HTable ht );
 void HT_destroy( HTable ht );
 size_t HT_maxdepth( HTable ht );
-/*
- * HT_set() return internal key value:
- */
-unsigned int HT_set( HTable ht, const void *key, size_t key_size, void *data );
+
+HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data );
 void *HT_get( HTable ht, const void *key, size_t key_size );
 int HT_delete( HTable ht, const void *key, size_t key_size );
 
@@ -63,7 +61,7 @@ int HT_delete( HTable ht, const void *key, size_t key_size );
  * HT_set_c( ht, "fookey", data );
  * ... etc
  */
-unsigned int HT_set_c( HTable ht, const char *key, void *data );
+HTItem HT_set_c( HTable ht, const char *key, void *data );
 void *HT_get_c( HTable ht, const char *key );
 int HT_delete_c( HTable ht, const char *key );
 
@@ -74,7 +72,7 @@ int HT_delete_c( HTable ht, const char *key );
  * ... etc
  */
 #define HT_INTEGER_DECL(tag, type) \
-    unsigned int HT_set_##tag( HTable ht, type key, void *data ); \
+    HTItem HT_set_##tag( HTable ht, type key, void *data ); \
     void *HT_get_##tag( HTable ht, type key); \
     int HT_delete_##tag( HTable ht, type key);
 

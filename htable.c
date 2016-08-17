@@ -338,10 +338,10 @@ int HT_delete( HTable ht, const void *key, size_t key_size )
 }
 
 /*
- * Insert  hash table item. Return item hash (success) or 0 (failed). Set internal
- * error code.
+ * Insert  hash table item. Return created item pointer (success) or NULL (failed).
+ * Set internal error code.
  */
-unsigned int HT_set( HTable ht, const void *key, size_t key_size, void *data )
+HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data )
 {
     unsigned int hash;
     HTItem e;
@@ -361,7 +361,7 @@ unsigned int HT_set( HTable ht, const void *key, size_t key_size, void *data )
             e->data = data;
             ht->error = 0;
             __unlock( ht->lock );
-            return hash;
+            return e;
         }
 
         e = e->next;
@@ -372,7 +372,7 @@ unsigned int HT_set( HTable ht, const void *key, size_t key_size, void *data )
     if( !item ) {
         ht->error = ENOMEM;
         __unlock( ht->lock );
-        return 0;
+        return NULL;
     }
 
     item->key = Malloc( key_size );
@@ -381,7 +381,7 @@ unsigned int HT_set( HTable ht, const void *key, size_t key_size, void *data )
         ht->error = ENOMEM;
         Free( item );
         __unlock( ht->lock );
-        return 0;
+        return NULL;
     }
 
     memcpy( item->key, key, key_size );
@@ -399,13 +399,13 @@ unsigned int HT_set( HTable ht, const void *key, size_t key_size, void *data )
     }
 
     __unlock( ht->lock );
-    return hash;
+    return item;
 }
 
 /*
  * Various key types:
  */
-unsigned int HT_set_c( HTable ht, const char *key, void *data )
+HTItem HT_set_c( HTable ht, const char *key, void *data )
 {
     return HT_set( ht, key, strlen( key ), data );
 }
@@ -421,7 +421,7 @@ int HT_delete_c( HTable ht, const char *key )
 }
 
 #define HT_INTEGER_IMPL(tag, type) \
-    unsigned int HT_set_##tag( HTable ht, type key, void *data ) { \
+    HTItem HT_set_##tag( HTable ht, type key, void *data ) { \
         return HT_set( ht, &key, sizeof(key), data ); \
     } \
     void *HT_get_##tag( HTable ht, type key) {; \
