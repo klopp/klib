@@ -130,7 +130,7 @@ void HT_destroy( HTable ht )
 /*
  * Returm max items bucket length:
  */
-size_t HT_maxdepth( HTable ht )
+size_t HT_max_bucket( HTable ht )
 {
     size_t i;
     size_t maxdepth;

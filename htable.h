@@ -50,7 +50,7 @@ typedef struct _HTable {
 HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor );
 void HT_clear( HTable ht );
 void HT_destroy( HTable ht );
-size_t HT_maxdepth( HTable ht );
+size_t HT_max_bucket( HTable ht );
 
 HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data );
 void *HT_get( HTable ht, const void *key, size_t key_size );
