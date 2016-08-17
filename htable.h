@@ -19,6 +19,8 @@ extern "C" {
 #include "_lock.h"
 #include <errno.h>
 
+#define HT_MIN_SIZE     64
+
 typedef struct _HTItem {
     void *key;
     size_t key_size;
@@ -47,6 +49,11 @@ typedef struct _HTable {
     __lock_t( lock );
 } *HTable;
 
+/*
+ * 'size' will be rounded up to the next highest power of 2: 100 => 128, 1000 => 1024 etc.
+ * Can be 0 or < HT_SIZE_MIN, HT_SIZE_MIN will be used.
+ * 'destructor' is a function to delete elements data. Can be NULL.
+ */
 HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor );
 void HT_clear( HTable ht );
 void HT_destroy( HTable ht );

@@ -7,7 +7,6 @@
 #include "crc.h"
 #include "hash.h"
 
-#define HT_MIN_SIZE         (2 << 5)
 #define HT_HASH_MASK(ht)    (ht->size-1)
 
 /*
@@ -40,19 +39,23 @@ HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
         return NULL;
     }
 
-    /*
-     * Round up to the next highest power of 2:
-     */
-    i = 1;
-
-    while( i < size ) {
-        i = i * 2;
-    }
-
-    ht->size = i;
+    ht->size = size;
 
     if( ht->size < HT_MIN_SIZE ) {
         ht->size = HT_MIN_SIZE;
+    }
+
+    if( ht->size & ( ht->size - 1 ) ) {
+        /*
+         * Round up to the next highest power of 2:
+         */
+        i = 1;
+
+        while( i < ht->size ) {
+            i = i * 2;
+        }
+
+        ht->size = i;
     }
 
     ht->items = Calloc( ht->size, sizeof( struct _HTItem ) );
@@ -133,29 +136,29 @@ void HT_destroy( HTable ht )
 size_t HT_max_bucket( HTable ht )
 {
     size_t i;
-    size_t maxdepth;
+    size_t max_bucket;
     __lock( ht->lock );
     ht->error = 0;
-    maxdepth = 0;
+    max_bucket = 0;
 
     for( i = 0; i < ht->size; i++ ) {
         if( ht->items[i] && ht->items[i]->next ) {
-            size_t depth = 0;
+            size_t bucket = 0;
             HTItem e = ht->items[i];
 
             while( e ) {
-                depth++;
+                bucket++;
                 e = e->next;
             }
 
-            if( depth > maxdepth ) {
-                maxdepth = depth;
+            if( bucket > max_bucket ) {
+                max_bucket = bucket;
             }
         }
     }
 
     __unlock( ht->lock );
-    return maxdepth;
+    return max_bucket;
 }
 
 /*
