@@ -4,9 +4,8 @@
  */
 
 #include "htable.h"
-
-#include "../klib/crc.h"
-#include "../klib/hash.h"
+#include "crc.h"
+#include "hash.h"
 
 #define HT_MIN_SIZE         (2 << 5)
 #define HT_HASH_MASK(ht)    (ht->size-1)
@@ -210,7 +209,7 @@ int _HT_Reduce( HTable ht )
 }
 
 /*
- * Expand hash table. Return 1 (scuuess) or 0 (failed). Do not change  internal
+ * Expand hash table. Return 1 (success) or 0 (failed). Do not change  internal
  * error code.
  */
 int _HT_Expand( HTable ht )
