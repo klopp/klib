@@ -162,7 +162,7 @@ size_t HT_max_bucket( HTable ht )
 }
 
 /*
- * Expand hash table. Return 1 (scuuess) or 0 (failed). Do not change  internal
+ * Reduce storage. Return 1 (success) or 0 (failed). Do not change internal
  * error code.
  */
 int _HT_Reduce( HTable ht )
@@ -212,7 +212,7 @@ int _HT_Reduce( HTable ht )
 }
 
 /*
- * Expand hash table. Return 1 (success) or 0 (failed). Do not change  internal
+ * Expand storage. Return 1 (success) or 0 (failed). Do not change internal
  * error code.
  */
 int _HT_Expand( HTable ht )
@@ -341,7 +341,7 @@ int HT_delete( HTable ht, const void *key, size_t key_size )
 }
 
 /*
- * Insert  hash table item. Return created item pointer (success) or NULL (failed).
+ * Insert hash table item. Return created item pointer (success) or NULL (failed).
  * Set internal error code.
  */
 HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data )

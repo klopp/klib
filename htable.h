@@ -59,6 +59,9 @@ void HT_clear( HTable ht );
 void HT_destroy( HTable ht );
 size_t HT_max_bucket( HTable ht );
 
+/*
+ * Used error codes (HTable.error): 0 (no errors), ENOKEY, ENOMEM
+ */
 HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data );
 void *HT_get( HTable ht, const void *key, size_t key_size );
 int HT_delete( HTable ht, const void *key, size_t key_size );

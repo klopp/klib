@@ -28,7 +28,6 @@
 # include <windows.h>
 # define pid_t          int
 # define strcasecmp     _stricmp
-//# define snprintf       _snprintf
 # define _CRT_SECURE_NO_WARNINGS
 # pragma warning(disable : 4996)
 #endif
@@ -104,10 +103,10 @@ extern char *_k_strdup( char * );
 #define unused( var )   ((void)var)
 
 #define lambda(return_type, function_body) \
-   ({ \
-   return_type __fn__ function_body \
-   __fn__; \
-   })
+    ({ \
+        return_type __fn__ function_body \
+        __fn__; \
+    })
 
 #define lmbd(c_) ({ c_ _;})
 
