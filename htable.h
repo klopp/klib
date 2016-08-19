@@ -65,11 +65,13 @@ void HT_clear( HTable ht );
 void HT_destroy( HTable ht );
 size_t HT_max_bucket( HTable ht );
 /*
- * Disable expand and reduce internal data storage (enabled by default).
+ * Disable/enable expand and reduce internal data storage (enabled by default).
  * Return HTable pointer from arguments.
  */
 HTable HT_disable_expand( HTable ht );
 HTable HT_disable_reduce( HTable ht );
+HTable HT_enable_expand( HTable ht );
+HTable HT_enable_reduce( HTable ht );
 
 /*
  * Used error codes (HTable.error): 0 (no errors), ENOKEY, ENOMEM

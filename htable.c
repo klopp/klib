@@ -175,6 +175,18 @@ HTable HT_disable_reduce( HTable ht )
     return ht;
 }
 
+HTable HT_enable_expand( HTable ht )
+{
+    ht->flags &= ( ~HTF_DISABLE_EXPAND );
+    return ht;
+}
+
+HTable HT_enable_reduce( HTable ht )
+{
+    ht->flags &= ( ~HTF_DISABLE_REDUCE );
+    return ht;
+}
+
 /*
  * Reduce storage. Return 1 (success) or 0 (failed). Do not change internal
  * error code.
