@@ -69,6 +69,7 @@ HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
     ht->hf = NULL;
     ht->destructor = destructor;
     ht->error = 0;
+    ht->flags = 0;
     __initlock( ht->lock );
 
     for( i = 0; i < sizeof( _hf ) / sizeof( _hf[0] ); i++ ) {
@@ -159,6 +160,19 @@ size_t HT_max_bucket( HTable ht )
 
     __unlock( ht->lock );
     return max_bucket;
+}
+
+
+HTable HT_disable_expand( HTable ht )
+{
+    ht->flags |= HTF_DISABLE_EXPAND;
+    return ht;
+}
+
+HTable HT_disable_reduce( HTable ht )
+{
+    ht->flags |= HTF_DISABLE_REDUCE;
+    return ht;
 }
 
 /*
@@ -325,7 +339,7 @@ int HT_delete( HTable ht, const void *key, size_t key_size )
             ht->error = 0;
             rc++;
 
-            if( ht->nitems < ht->size / 2 ) {
+            if( ( ht->nitems < ht->size / 2 ) && !( ht->flags & HTF_DISABLE_REDUCE ) ) {
                 _HT_Reduce( ht );
             }
 
@@ -397,7 +411,7 @@ HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data )
     ht->error = 0;
     ht->nitems++;
 
-    if( ht->nitems > ht->size ) {
+    if( ( ht->nitems > ht->size ) && !( ht->flags & HTF_DISABLE_EXPAND ) ) {
         _HT_Expand( ht );
     }
 

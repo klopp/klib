@@ -39,12 +39,18 @@ typedef unsigned int ( *HT_Hash_Function )( const void *data, size_t size );
 
 typedef void ( *HT_Destructor )( void *data );
 
+typedef enum _HT_Flags {
+    HTF_DISABLE_EXPAND = 0x01,
+    HTF_DISABLE_REDUCE = 0x02
+} HT_Flags;
+
 typedef struct _HTable {
     size_t size;
     size_t nitems;
     HTItem *items;
     HT_Destructor destructor;
     HT_Hash_Function hf;
+    HT_Flags flags;
     int error;
     __lock_t( lock );
 } *HTable;
@@ -58,6 +64,12 @@ HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor );
 void HT_clear( HTable ht );
 void HT_destroy( HTable ht );
 size_t HT_max_bucket( HTable ht );
+/*
+ * Disable expand and reduce internal data storage (enabled by default).
+ * Return HTable pointer from arguments.
+ */
+HTable HT_disable_expand( HTable ht );
+HTable HT_disable_reduce( HTable ht );
 
 /*
  * Used error codes (HTable.error): 0 (no errors), ENOKEY, ENOMEM
