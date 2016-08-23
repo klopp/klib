@@ -131,6 +131,32 @@ void HT_destroy( HTable ht )
     Free( ht );
 }
 
+static void _HT_ForEach( HTItem item, HT_Foreach foreach )
+{
+    if( item->next ) {
+        _HT_ForEach( item->next, foreach );
+    }
+
+    foreach( item );
+}
+
+/*
+ * Foreach iterator:
+ */
+void HT_foreach( HTable ht, HT_Foreach foreach )
+{
+    size_t i;
+    __lock( ht->lock );
+
+    for( i = 0; i < ht->size; i++ ) {
+        if( ht->items[i] ) {
+            _HT_ForEach( ht->items[i], foreach );
+        }
+    }
+
+    __unlock( ht->lock );
+}
+
 /*
  * Returm max items bucket length:
  */
@@ -161,7 +187,6 @@ size_t HT_max_bucket( HTable ht )
     __unlock( ht->lock );
     return max_bucket;
 }
-
 
 HTable HT_disable_expand( HTable ht )
 {

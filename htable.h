@@ -55,6 +55,8 @@ typedef struct _HTable {
     __lock_t( lock );
 } *HTable;
 
+typedef void ( *HT_Foreach )( HTItem item );
+
 /*
  * 'size' will be rounded up to the next highest power of 2: 100 => 128, 1000 => 1024 etc.
  * Can be 0 or < HT_SIZE_MIN, HT_SIZE_MIN will be used.
@@ -63,6 +65,12 @@ typedef struct _HTable {
 HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor );
 void HT_clear( HTable ht );
 void HT_destroy( HTable ht );
+
+/*
+ * Foreach iterator
+ */
+void HT_foreach( HTable ht, HT_Foreach foreach );
+
 size_t HT_max_bucket( HTable ht );
 /*
  * Disable/enable expand and reduce internal data storage (enabled by default).
