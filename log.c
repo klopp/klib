@@ -378,69 +378,71 @@ static size_t _log_make_prefix( LogInfo log, LOG_LEVEL level )
 
 void plog( LogInfo log, LOG_LEVEL level, const char *fmt, ... )
 {
-    int handle = -1;
-    size_t size;
-    __lock( log->lock );
+    if( log->level <= level ) {
+        int handle = -1;
+        size_t size;
+        __lock( log->lock );
 
-    if( log->format ) {
-        if( !( size = _log_make_prefix( log, level ) ) ) {
-            __unlock( log->lock );
-            return;
-        }
-
-        if( !log->buf ) {
-            handle = _log_get_handle( log );
-
-            if( handle < 0 ) {
+        if( log->format ) {
+            if( !( size = _log_make_prefix( log, level ) ) ) {
                 __unlock( log->lock );
                 return;
             }
 
-            write( handle, log->ibuf, size );
-        }
-        else {
-            _log_cat_buf( log, log->ibuf, size );
-        }
-    }
-
-    while( 1 ) {
-        char *ptr;
-        int n;
-        va_list ap;
-        va_start( ap, fmt );
-        n = vsnprintf( log->ibuf, log->ibuf_size, fmt, ap );
-        va_end( ap );
-
-        if( n < 0 ) {
-            break;
-        }
-
-        if( n < log->ibuf_size ) {
             if( !log->buf ) {
-                write( handle, log->ibuf, n );
+                handle = _log_get_handle( log );
+
+                if( handle < 0 ) {
+                    __unlock( log->lock );
+                    return;
+                }
+
+                write( handle, log->ibuf, size );
             }
             else {
-                _log_cat_buf( log, log->ibuf, n );
+                _log_cat_buf( log, log->ibuf, size );
+            }
+        }
+
+        while( 1 ) {
+            char *ptr;
+            int n;
+            va_list ap;
+            va_start( ap, fmt );
+            n = vsnprintf( log->ibuf, log->ibuf_size, fmt, ap );
+            va_end( ap );
+
+            if( n < 0 ) {
+                break;
             }
 
-            break;
+            if( n < log->ibuf_size ) {
+                if( !log->buf ) {
+                    write( handle, log->ibuf, n );
+                }
+                else {
+                    _log_cat_buf( log, log->ibuf, n );
+                }
+
+                break;
+            }
+
+            ptr = Realloc( log->ibuf, n + 1 );
+
+            if( !ptr ) {
+                break;
+            }
+
+            log->ibuf = ptr;
+            log->ibuf_size = n + 1;
         }
 
-        ptr = Realloc( log->ibuf, n + 1 );
-
-        if( !ptr ) {
-            break;
+        if( handle >= 0 && handle != fileno( stdout ) && handle != fileno( stderr ) ) {
+            close( handle );
         }
 
-        log->ibuf = ptr;
-        log->ibuf_size = n + 1;
+        __unlock( log->lock );
     }
-
-    if( handle >= 0 && handle != fileno( stdout ) && handle != fileno( stderr ) ) {
-        close( handle );
-    }
-
-    __unlock( log->lock );
 }
 
 /*
