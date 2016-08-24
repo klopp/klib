@@ -4,41 +4,76 @@
  */
 
 #include "log.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-LogInfo log_create(LOG_LEVEL level, const char *file, const char *format, size_t buf_size)
+static int _log_get_handle( LogInfo log )
 {
-    LogInfo log = Calloc(sizeof(struct _LogInfo), 1);
-
-    if (!log) {
-        return NULL;
+    if( !log->file || !log->file[0] ) {
+        return fileno( stdout );
     }
 
-    if (buf_size) {
-        log->buf = Malloc(buf_size);
-
-        if (!log->buf) {
-            Free(log);
-            return NULL;
+    if( !log->file[1] ) {
+        if( log->file[0] == '-' ) {
+            return fileno( stdout );
         }
 
-        log->buf_size = buf_size;
+        if( log->file[0] == '=' ) {
+            return fileno( stderr );
+        }
     }
 
-    log->format = Strdup(format ? format : LOG_DEFAULT_FORMAT);
+    return open( log->file, O_APPEND | O_CREAT );
+}
 
-    if (!log->format) {
-        Free(log->buf);
-        Free(log);
+static void _log_flush( LogInfo log )
+{
+    if( log->buf && log->in_buf ) {
+        int handle = _log_get_handle( log );
+
+        if( handle >= 0 ) {
+            write( handle, log->buf, log->in_buf );
+            log->in_buf = 0;
+            close( handle );
+        }
+    }
+}
+
+LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
+                    size_t buf_size )
+{
+    LogInfo log = Calloc( sizeof( struct _LogInfo ), 1 );
+
+    if( !log ) {
         return NULL;
     }
 
-    if (file) {
-        log->file = Strdup(file);
+    if( buf_size ) {
+        log->buf_size = buf_size < LOG_BUF_MIN_SIZE ? LOG_BUF_MIN_SIZE : buf_size;
+        log->buf = Malloc( log->buf_size );
 
-        if (!log->file) {
-            Free(log->format);
-            Free(log->buf);
-            Free(log);
+        if( !log->buf ) {
+            Free( log );
+            return NULL;
+        }
+    }
+
+    log->format = Strdup( format ? format : LOG_DEFAULT_FORMAT );
+
+    if( !log->format ) {
+        Free( log->buf );
+        Free( log );
+        return NULL;
+    }
+
+    if( file ) {
+        log->file = Strdup( file );
+
+        if( !log->file ) {
+            Free( log->format );
+            Free( log->buf );
+            Free( log );
             return NULL;
         }
     }
@@ -47,12 +82,13 @@ LogInfo log_create(LOG_LEVEL level, const char *file, const char *format, size_t
     return log;
 }
 
-void log_destroy(LogInfo log)
+void log_destroy( LogInfo log )
 {
-    Free(log->format);
-    Free(log->file);
-    Free(log->buf);
-    Free(log);
+    _log_flush( log );
+    Free( log->format );
+    Free( log->file );
+    Free( log->buf );
+    Free( log );
 }
 
 /*
