@@ -67,7 +67,7 @@ void HT_clear( HTable ht );
 void HT_destroy( HTable ht );
 
 /*
- * Foreach iterator
+ * Foreach iterator:
  */
 void HT_foreach( HTable ht, HT_Foreach foreach );
 

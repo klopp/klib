@@ -20,7 +20,7 @@ extern "C" {
  *
  *      ... some code ...
  *
- *      unsigned long nanoseconds = t_diff( &start, NULL );
+ *      unsigned long microseconds = t_diff( &start, NULL );
  */
 unsigned long t_diff( struct timeval *start, struct timeval *end );
 
