@@ -32,8 +32,8 @@ typedef struct _LogInfo {
     __lock_t( lock );
 } *LogInfo;
 
-#define LOG_BUF_MIN_SIZE            32
-#define LOG_PREFIX_BUF_MIN_SIZE     32
+#define LOG_BUF_MIN_SIZE            (1024 * 4)
+#define LOG_IBUF_MIN_SIZE           64
 #define LOG_DEFAULT_FORMAT          "[%L] %Z "
 
 /*

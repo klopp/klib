@@ -99,8 +99,8 @@ LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
         return NULL;
     }
 
-    log->ibuf_size = LOG_BUF_MIN_SIZE;
-    log->ibuf = Malloc( LOG_BUF_MIN_SIZE + 1 );
+    log->ibuf_size = LOG_IBUF_MIN_SIZE;
+    log->ibuf = Malloc( LOG_IBUF_MIN_SIZE + 1 );
 
     if( !log->ibuf ) {
         Free( log );
@@ -118,9 +118,10 @@ LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
         }
     }
 
-    log->format = Strdup( format ? format : LOG_DEFAULT_FORMAT );
+    log->format = ( format ? ( *format ? Strdup( format ) : NULL ) : Strdup(
+                            LOG_DEFAULT_FORMAT ) );
 
-    if( !log->format ) {
+    if( ( ( format && *format ) || !format ) && !log->format ) {
         Free( log->ibuf );
         Free( log->buf );
         Free( log );
@@ -381,23 +382,25 @@ void plog( LogInfo log, LOG_LEVEL level, const char *fmt, ... )
     size_t size;
     __lock( log->lock );
 
-    if( !( size = _log_make_prefix( log, level ) ) ) {
-        __unlock( log->lock );
-        return;
-    }
-
-    if( !log->buf ) {
-        handle = _log_get_handle( log );
-
-        if( handle < 0 ) {
+    if( log->format ) {
+        if( !( size = _log_make_prefix( log, level ) ) ) {
             __unlock( log->lock );
             return;
         }
 
-        write( handle, log->ibuf, size );
-    }
-    else {
-        _log_cat_buf( log, log->ibuf, size );
+        if( !log->buf ) {
+            handle = _log_get_handle( log );
+
+            if( handle < 0 ) {
+                __unlock( log->lock );
+                return;
+            }
+
+            write( handle, log->ibuf, size );
+        }
+        else {
+            _log_cat_buf( log, log->ibuf, size );
+        }
     }
 
     while( 1 ) {
