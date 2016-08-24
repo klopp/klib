@@ -16,15 +16,15 @@ static const char *_log_long_title( LOG_LEVEL level )
     static struct {
         LOG_LEVEL level;
         const char *title;
-    } _log_long_titles[] = { { LOG_LEVEL_DEBUG, "debug" }, { LOG_LEVEL_INFO, "info " }, { LOG_LEVEL_WARN, "warn " }, {
+    } titles[] = { { LOG_LEVEL_DEBUG, "debug" }, { LOG_LEVEL_INFO, "info " }, { LOG_LEVEL_WARN, "warn " }, {
             LOG_LEVEL_ERROR,
             "error"
         }, { LOG_LEVEL_FATAL, "fatal" }
     };
 
-    while( i < sizeof( _log_long_titles ) / sizeof( _log_long_titles[0] ) ) {
-        if( level == _log_long_titles[i].level ) {
-            return _log_long_titles[i].title;
+    while( i < sizeof( titles ) / sizeof( titles[0] ) ) {
+        if( level == titles[i].level ) {
+            return titles[i].title;
         }
 
         i++;
@@ -39,14 +39,14 @@ static const char *_log_short_title( LOG_LEVEL level )
     static struct {
         LOG_LEVEL level;
         const char *title;
-    } _log_short_titles[] = { { LOG_LEVEL_DEBUG, "#" }, { LOG_LEVEL_INFO, "i" }, { LOG_LEVEL_WARN, "?" }, { LOG_LEVEL_ERROR, "!" }, {
+    } titles[] = { { LOG_LEVEL_DEBUG, "#" }, { LOG_LEVEL_INFO, "i" }, { LOG_LEVEL_WARN, "?" }, { LOG_LEVEL_ERROR, "!" }, {
             LOG_LEVEL_FATAL, "*"
         }
     };
 
-    while( i < sizeof( _log_short_titles ) / sizeof( _log_short_titles[0] ) ) {
-        if( level == _log_short_titles[i].level ) {
-            return _log_short_titles[i].title;
+    while( i < sizeof( titles ) / sizeof( titles[0] ) ) {
+        if( level == titles[i].level ) {
+            return titles[i].title;
         }
 
         i++;
