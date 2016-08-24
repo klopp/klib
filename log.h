@@ -17,17 +17,18 @@ extern "C" {
 typedef enum _LOG_LEVEL
 {
     LOG_DEBUG, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_FATAL, LOG_LVL_MAX
-} LOG_LEVEL;
+}
+LOG_LEVEL;
 
-typedef struct _LogInfo
-{
+typedef struct _LogInfo {
     char *buf;
     char *file;
     char *format;
     size_t buf_size;
     size_t in_buf;
     LOG_LEVEL level;
-}*LogInfo;
+    __lock_t( lock );
+} *LogInfo;
 
 #define LOG_BUF_MIN_SIZE        (1024 * 4)
 #define LOG_DEFAULT_FORMAT      "[%L] %d.%m.%y %H:%M:%S "
@@ -42,8 +43,9 @@ typedef struct _LogInfo
  *      %p - PID
  *      %d, %m, %y, %H, %M, %S - day, month, year, hour, min, sec
  */
-LogInfo log_create(LOG_LEVEL level, const char *file, const char *format, size_t buf_size);
-void log_destroy(LogInfo log);
+LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
+                    size_t buf_size );
+void log_destroy( LogInfo log );
 
 #if defined(__cplusplus)
 }; /* extern "C" */

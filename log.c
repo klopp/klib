@@ -29,6 +29,8 @@ static int _log_get_handle( LogInfo log )
 
 static void _log_flush( LogInfo log )
 {
+    __lock( log->lock );
+
     if( log->buf && log->in_buf ) {
         int handle = _log_get_handle( log );
 
@@ -38,6 +40,8 @@ static void _log_flush( LogInfo log )
             close( handle );
         }
     }
+
+    __unlock( log->lock );
 }
 
 LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
@@ -79,6 +83,7 @@ LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
     }
 
     log->level = level;
+    __initlock( log->lock );
     return log;
 }
 
