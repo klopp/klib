@@ -119,7 +119,7 @@ LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
     }
 
     log->format = ( format ? ( *format ? Strdup( format ) : NULL ) : Strdup(
-                            LOG_DEFAULT_FORMAT ) );
+                            LOG_DEFAULT_PREFIX ) );
 
     if( ( ( format && *format ) || !format ) && !log->format ) {
         Free( log->ibuf );

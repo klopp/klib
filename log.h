@@ -34,12 +34,14 @@ typedef struct _LogInfo {
 
 #define LOG_BUF_MIN_SIZE            (1024 * 4)
 #define LOG_IBUF_MIN_SIZE           64
-#define LOG_DEFAULT_FORMAT          "[%L] %Z "
+#define LOG_DEFAULT_PREFIX          "[%L] %Z "
 
 /*
  * 'file': NULL, "-" -> stdout, "=" > stderr
  * 'buf_len': 0 to no bufferization
  * 'format':
+ *      NULL - LOG_DEFAULT_PREFIX
+ *      "" - no prefix
  *      %l - verbose log level ("debug", "info", "warn", "error", "fatal")
  *      %L - short log level ("#", "i", "?", "!", "*")
  *      %p - PID
