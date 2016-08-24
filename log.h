@@ -22,16 +22,18 @@ LOG_LEVEL;
 
 typedef struct _LogInfo {
     char *buf;
+    char *ibuf;
     char *file;
     char *format;
     size_t buf_size;
+    size_t ibuf_size;
     size_t in_buf;
     LOG_LEVEL level;
     __lock_t( lock );
 } *LogInfo;
 
 #define LOG_BUF_MIN_SIZE        (1024 * 4)
-#define LOG_DEFAULT_FORMAT      "[%L] %d.%m.%y %H:%M:%S "
+#define LOG_DEFAULT_FORMAT      "[%L] %Z "
 
 /*
  * 'file': NULL, "-" -> stdout, "=" > stderr
@@ -39,9 +41,11 @@ typedef struct _LogInfo {
  * 'format':
  *      %l - verbose log level ("debug", "info", "warn", "error", "fatal")
  *      %L - short log level ("#", "i", "?", "!", "*")
- *      %* - message
  *      %p - PID
  *      %d, %m, %y, %H, %M, %S - day, month, year, hour, min, sec
+ *      %X - hour:min:sec
+ *      %Y - day.month.year
+ *      %Z - day.month.year hour:min:sec
  */
 LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
                     size_t buf_size );
