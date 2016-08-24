@@ -10,6 +10,47 @@
 #include <stdarg.h>
 #include <time.h>
 
+static const char *_log_long_title( LOG_LEVEL level )
+{
+    size_t i = 0;
+    static struct {
+        LOG_LEVEL level;
+        const char *title;
+    } _log_long_titles[] = { { LOG_DEBUG, "debug" }, { LOG_INFO, "info" }, { LOG_WARN, "warn" }, {
+            LOG_ERROR,
+            "error"
+        }, { LOG_FATAL, "fatal" }
+    };
+
+    while( i++ < sizeof( _log_long_titles ) / sizeof( _log_long_titles[0] ) ) {
+        if( level == _log_long_titles[i].level ) {
+            return _log_long_titles[i].title;
+        }
+    }
+
+    return "log";
+}
+
+static const char *_log_short_title( LOG_LEVEL level )
+{
+    size_t i = 0;
+    static struct {
+        LOG_LEVEL level;
+        const char *title;
+    } _log_short_titles[] = { { LOG_DEBUG, "#" }, { LOG_INFO, "i" }, { LOG_WARN, "?" }, { LOG_ERROR, "?" }, {
+            LOG_FATAL, "*"
+        }
+    };
+
+    while( i++ < sizeof( _log_short_titles ) / sizeof( _log_short_titles[0] ) ) {
+        if( level == _log_short_titles[i].level ) {
+            return _log_short_titles[i].title;
+        }
+    }
+
+    return "@";
+}
+
 static int _log_get_handle( LogInfo log )
 {
     if( !log->file || !log->file[0] ) {
@@ -158,7 +199,7 @@ static size_t _log_cat_ibuf( LogInfo log, const char *buf, size_t size )
     return size;
 }
 
-static size_t _log_make_prefix( LogInfo log )
+static size_t _log_make_prefix( LogInfo log, LOG_LEVEL level )
 {
     const char *fmt = log->format;
     size_t size = 0;
@@ -183,9 +224,17 @@ static size_t _log_make_prefix( LogInfo log )
                     break;
 
                 case 'l':
+                    if( !( size = _log_cat_ibuf( log, _log_short_title( level ), size ) ) ) {
+                        return 0;
+                    }
+
                     break;
 
                 case 'L':
+                    if( !( size = _log_cat_ibuf( log, _log_long_title( level ), size ) ) ) {
+                        return 0;
+                    }
+
                     break;
 
                 case 'd':
@@ -272,8 +321,7 @@ static size_t _log_make_prefix( LogInfo log )
                 case 'Z':
                     tnow = _log_init_time( tnow );
                     sprintf( buf, "%02u.%02u.%04u %02u:%02u:%02u", tnow->tm_mday, tnow->tm_mon + 1,
-                             tnow->tm_year + 1900,
-                             tnow->tm_hour, tnow->tm_min, tnow->tm_sec );
+                             tnow->tm_year + 1900, tnow->tm_hour, tnow->tm_min, tnow->tm_sec );
 
                     if( !( size = _log_cat_ibuf( log, buf, size ) ) ) {
                         return 0;
@@ -301,7 +349,7 @@ static size_t _log_make_prefix( LogInfo log )
 
 static void _log( LogInfo log, LOG_LEVEL level, const char *fmt, va_list ap )
 {
-    if( !_log_make_prefix( log ) ) {
+    if( !_log_make_prefix( log, level ) ) {
         return;
     }
 }
