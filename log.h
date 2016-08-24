@@ -16,7 +16,13 @@ extern "C" {
 
 typedef enum _LOG_LEVEL
 {
-    LOG_DEBUG, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_FATAL, LOG_LVL_MAX
+    LOG_LEVEL_DEBUG = 0x01,
+    LOG_LEVEL_INFO = 0x02,
+    LOG_LEVEL_WARN = 0x04,
+    LOG_LEVEL_ERROR = 0x08,
+    LOG_LEVEL_FATAL = 0x10,
+    LOG_LEVEL_DEFAULT = LOG_LEVEL_INFO | LOG_LEVEL_WARN | LOG_LEVEL_ERROR |
+                        LOG_LEVEL_FATAL
 }
 LOG_LEVEL;
 
@@ -24,7 +30,7 @@ typedef struct _LogInfo {
     char *buf;
     char *ibuf;
     char *file;
-    char *format;
+    char *prefix;
     size_t buf_size;
     size_t ibuf_size;
     size_t in_buf;
@@ -37,9 +43,9 @@ typedef struct _LogInfo {
 #define LOG_DEFAULT_PREFIX          "[%L] %Z "
 
 /*
- * 'file': NULL, "-" -> stdout, "=" > stderr
- * 'buf_len': 0 to no bufferization
- * 'format':
+ * 'file'    : NULL, "-" -> stdout, "=" > stderr
+ * 'buf_len' : 0 to no bufferization
+ * 'prefix'  :
  *      NULL - LOG_DEFAULT_PREFIX
  *      "" - no prefix
  *      %l - verbose log level ("debug", "info", "warn", "error", "fatal")
@@ -50,16 +56,16 @@ typedef struct _LogInfo {
  *      %Y - day.month.year
  *      %Z - day.month.year hour:min:sec
  */
-LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
+LogInfo log_create( LOG_LEVEL level, const char *file, const char *prefix,
                     size_t buf_size );
 void log_destroy( LogInfo log );
 void plog( LogInfo log, LOG_LEVEL level, const char *fmt, ... );
 
-#define dlog( log, fmt, ... )   plog( (log), LOG_DEBUG, (fmt), __VA_ARGS__ )
-#define ilog( log, fmt, ... )   plog( (log), LOG_INFO,  (fmt), __VA_ARGS__ )
-#define wlog( log, fmt, ... )   plog( (log), LOG_WARN,  (fmt), __VA_ARGS__ )
-#define elog( log, fmt, ... )   plog( (log), LOG_ERROR, (fmt), __VA_ARGS__ )
-#define flog( log, fmt, ... )   plog( (log), LOG_FATAL, (fmt), __VA_ARGS__ )
+#define dlog( log, fmt, ... )   plog( (log), LOG_LEVEL_DEBUG, (fmt), __VA_ARGS__ )
+#define ilog( log, fmt, ... )   plog( (log), LOG_LEVEL_INFO,  (fmt), __VA_ARGS__ )
+#define wlog( log, fmt, ... )   plog( (log), LOG_LEVEL_WARN,  (fmt), __VA_ARGS__ )
+#define elog( log, fmt, ... )   plog( (log), LOG_LEVEL_ERROR, (fmt), __VA_ARGS__ )
+#define flog( log, fmt, ... )   plog( (log), LOG_LEVEL_FATAL, (fmt), __VA_ARGS__ )
 
 #if defined(__cplusplus)
 }; /* extern "C" */

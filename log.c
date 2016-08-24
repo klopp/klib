@@ -16,10 +16,10 @@ static const char *_log_long_title( LOG_LEVEL level )
     static struct {
         LOG_LEVEL level;
         const char *title;
-    } _log_long_titles[] = { { LOG_DEBUG, "debug" }, { LOG_INFO, "info" }, { LOG_WARN, "warn" }, {
-            LOG_ERROR,
+    } _log_long_titles[] = { { LOG_LEVEL_DEBUG, "debug" }, { LOG_LEVEL_INFO, "info " }, { LOG_LEVEL_WARN, "warn " }, {
+            LOG_LEVEL_ERROR,
             "error"
-        }, { LOG_FATAL, "fatal" }
+        }, { LOG_LEVEL_FATAL, "fatal" }
     };
 
     while( i < sizeof( _log_long_titles ) / sizeof( _log_long_titles[0] ) ) {
@@ -39,8 +39,8 @@ static const char *_log_short_title( LOG_LEVEL level )
     static struct {
         LOG_LEVEL level;
         const char *title;
-    } _log_short_titles[] = { { LOG_DEBUG, "#" }, { LOG_INFO, "i" }, { LOG_WARN, "?" }, { LOG_ERROR, "!" }, {
-            LOG_FATAL, "*"
+    } _log_short_titles[] = { { LOG_LEVEL_DEBUG, "#" }, { LOG_LEVEL_INFO, "i" }, { LOG_LEVEL_WARN, "?" }, { LOG_LEVEL_ERROR, "!" }, {
+            LOG_LEVEL_FATAL, "*"
         }
     };
 
@@ -118,10 +118,10 @@ LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
         }
     }
 
-    log->format = ( format ? ( *format ? Strdup( format ) : NULL ) : Strdup(
+    log->prefix = ( format ? ( *format ? Strdup( format ) : NULL ) : Strdup(
                             LOG_DEFAULT_PREFIX ) );
 
-    if( ( ( format && *format ) || !format ) && !log->format ) {
+    if( ( ( format && *format ) || !format ) && !log->prefix ) {
         Free( log->ibuf );
         Free( log->buf );
         Free( log );
@@ -133,7 +133,7 @@ LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
 
         if( !log->file ) {
             Free( log->ibuf );
-            Free( log->format );
+            Free( log->prefix );
             Free( log->buf );
             Free( log );
             return NULL;
@@ -148,7 +148,7 @@ LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
 void log_destroy( LogInfo log )
 {
     _log_flush( log );
-    Free( log->format );
+    Free( log->prefix );
     Free( log->file );
     Free( log->ibuf );
     Free( log->buf );
@@ -230,7 +230,7 @@ static void _log_cat_buf( LogInfo log, const char *buf, size_t blen )
 
 static size_t _log_make_prefix( LogInfo log, LOG_LEVEL level )
 {
-    const char *fmt = log->format;
+    const char *fmt = log->prefix;
     size_t size = 0;
     struct tm *tnow = NULL;
     char buf[0x40];
@@ -378,12 +378,12 @@ static size_t _log_make_prefix( LogInfo log, LOG_LEVEL level )
 
 void plog( LogInfo log, LOG_LEVEL level, const char *fmt, ... )
 {
-    if( log->level <= level ) {
+    if( log->level & level ) {
         int handle = -1;
         size_t size;
         __lock( log->lock );
 
-        if( log->format ) {
+        if( log->prefix ) {
             if( !( size = _log_make_prefix( log, level ) ) ) {
                 __unlock( log->lock );
                 return;
