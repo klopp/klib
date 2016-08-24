@@ -10,49 +10,43 @@
 #include <stdarg.h>
 #include <time.h>
 
-static const char *_log_long_title( LOG_FLAGS level )
-{
-    size_t i = 0;
-    static struct {
-        LOG_FLAGS level;
-        const char *title;
-    } titles[] = { { LOG_LEVEL_DEBUG, "debug" }, { LOG_LEVEL_INFO, "info " }, { LOG_LEVEL_WARN, "warn " }, {
-            LOG_LEVEL_ERROR,
-            "error"
-        }, { LOG_LEVEL_FATAL, "fatal" }
-    };
+typedef struct _log_titles {
+    LOG_FLAGS level;
+    const char *title;
+} log_titles;
 
-    while( i < sizeof( titles ) / sizeof( titles[0] ) ) {
-        if( level == titles[i].level ) {
-            return titles[i].title;
+static const char *_log_title( LOG_FLAGS level, log_titles *titles,
+                               const char *dflt )
+{
+    while( titles->title ) {
+        if( level == titles->level ) {
+            return titles->title;
         }
 
-        i++;
+        titles++;
     }
 
-    return "log";
+    return dflt;
+}
+
+static const char *_log_long_title( LOG_FLAGS level )
+{
+    static log_titles titles[] = {
+        { LOG_LEVEL_DEBUG, "debug" }, { LOG_LEVEL_INFO, "info " }, { LOG_LEVEL_WARN, "warn " }, {
+            LOG_LEVEL_ERROR, "error"
+        }, { LOG_LEVEL_FATAL, "fatal" }, { 0, NULL }
+    };
+    return _log_title( level, titles, "log" );
 }
 
 static const char *_log_short_title( LOG_FLAGS level )
 {
-    size_t i = 0;
-    static struct {
-        LOG_FLAGS level;
-        const char *title;
-    } titles[] = { { LOG_LEVEL_DEBUG, "#" }, { LOG_LEVEL_INFO, "i" }, { LOG_LEVEL_WARN, "?" }, { LOG_LEVEL_ERROR, "!" }, {
-            LOG_LEVEL_FATAL, "*"
-        }
+    static log_titles titles[] = {
+        { LOG_LEVEL_DEBUG, "#" }, { LOG_LEVEL_INFO, "i" }, { LOG_LEVEL_WARN, "?" }, {
+            LOG_LEVEL_ERROR, "!"
+        }, { LOG_LEVEL_FATAL, "*" }, {0, NULL }
     };
-
-    while( i < sizeof( titles ) / sizeof( titles[0] ) ) {
-        if( level == titles[i].level ) {
-            return titles[i].title;
-        }
-
-        i++;
-    }
-
-    return "@";
+    return _log_title( level, titles, "@" );
 }
 
 static int _log_get_handle( LogInfo log )
