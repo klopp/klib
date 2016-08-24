@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <stdarg.h>
 
 static int _log_get_handle( LogInfo log )
 {
@@ -29,8 +30,6 @@ static int _log_get_handle( LogInfo log )
 
 static void _log_flush( LogInfo log )
 {
-    __lock( log->lock );
-
     if( log->buf && log->in_buf ) {
         int handle = _log_get_handle( log );
 
@@ -40,8 +39,6 @@ static void _log_flush( LogInfo log )
             close( handle );
         }
     }
-
-    __unlock( log->lock );
 }
 
 LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
@@ -94,6 +91,18 @@ void log_destroy( LogInfo log )
     Free( log->file );
     Free( log->buf );
     Free( log );
+}
+
+static void _log( LogInfo log, LOG_LEVEL level, const char *fmt, va_list ap )
+{
+}
+
+void ilog( LogInfo log, const char *fmt, ... )
+{
+    va_list ap;
+    va_start( ap, fmt );
+    _log( log, LOG_INFO, fmt, ap );
+    va_end( ap );
 }
 
 /*

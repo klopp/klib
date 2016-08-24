@@ -46,6 +46,7 @@ typedef struct _LogInfo {
 LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
                     size_t buf_size );
 void log_destroy( LogInfo log );
+void ilog( LogInfo log, const char *fmt, ... );
 
 #if defined(__cplusplus)
 }; /* extern "C" */
