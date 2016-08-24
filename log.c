@@ -22,10 +22,12 @@ static const char *_log_long_title( LOG_LEVEL level )
         }, { LOG_FATAL, "fatal" }
     };
 
-    while( i++ < sizeof( _log_long_titles ) / sizeof( _log_long_titles[0] ) ) {
+    while( i < sizeof( _log_long_titles ) / sizeof( _log_long_titles[0] ) ) {
         if( level == _log_long_titles[i].level ) {
             return _log_long_titles[i].title;
         }
+
+        i++;
     }
 
     return "log";
@@ -37,15 +39,17 @@ static const char *_log_short_title( LOG_LEVEL level )
     static struct {
         LOG_LEVEL level;
         const char *title;
-    } _log_short_titles[] = { { LOG_DEBUG, "#" }, { LOG_INFO, "i" }, { LOG_WARN, "?" }, { LOG_ERROR, "?" }, {
+    } _log_short_titles[] = { { LOG_DEBUG, "#" }, { LOG_INFO, "i" }, { LOG_WARN, "?" }, { LOG_ERROR, "!" }, {
             LOG_FATAL, "*"
         }
     };
 
-    while( i++ < sizeof( _log_short_titles ) / sizeof( _log_short_titles[0] ) ) {
+    while( i < sizeof( _log_short_titles ) / sizeof( _log_short_titles[0] ) ) {
         if( level == _log_short_titles[i].level ) {
             return _log_short_titles[i].title;
         }
+
+        i++;
     }
 
     return "@";

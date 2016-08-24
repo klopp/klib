@@ -53,7 +53,11 @@ LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
 void log_destroy( LogInfo log );
 void plog( LogInfo log, LOG_LEVEL level, const char *fmt, ... );
 
-#define ilog( log, fmt, ... )   plog( (log), LOG_INFO, (fmt), __VA_ARGS__ )
+#define dlog( log, fmt, ... )   plog( (log), LOG_DEBUG, (fmt), __VA_ARGS__ )
+#define ilog( log, fmt, ... )   plog( (log), LOG_INFO,  (fmt), __VA_ARGS__ )
+#define wlog( log, fmt, ... )   plog( (log), LOG_WARN,  (fmt), __VA_ARGS__ )
+#define elog( log, fmt, ... )   plog( (log), LOG_ERROR, (fmt), __VA_ARGS__ )
+#define flog( log, fmt, ... )   plog( (log), LOG_FATAL, (fmt), __VA_ARGS__ )
 
 #if defined(__cplusplus)
 }; /* extern "C" */
