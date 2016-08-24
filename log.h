@@ -14,17 +14,18 @@ extern "C" {
 #include "_lock.h"
 #include <stdio.h>
 
-typedef enum _LOG_LEVEL
+typedef enum _LOG_FLAGS
 {
     LOG_LEVEL_DEBUG = 0x01,
     LOG_LEVEL_INFO = 0x02,
     LOG_LEVEL_WARN = 0x04,
     LOG_LEVEL_ERROR = 0x08,
     LOG_LEVEL_FATAL = 0x10,
+    LOG_APPEND_CR = 0x400,
     LOG_LEVEL_DEFAULT = LOG_LEVEL_INFO | LOG_LEVEL_WARN | LOG_LEVEL_ERROR |
                         LOG_LEVEL_FATAL
 }
-LOG_LEVEL;
+LOG_FLAGS;
 
 typedef struct _LogInfo {
     char *buf;
@@ -34,7 +35,7 @@ typedef struct _LogInfo {
     size_t buf_size;
     size_t ibuf_size;
     size_t in_buf;
-    LOG_LEVEL level;
+    LOG_FLAGS flags;
     __lock_t( lock );
 } *LogInfo;
 
@@ -43,7 +44,7 @@ typedef struct _LogInfo {
 #define LOG_DEFAULT_PREFIX          "[%L] %Z "
 
 /*
- * 'file'    : NULL, "-" -> stdout, "=" > stderr
+ * 'file'    : NULL, "-" -> stdout, "=" -> stderr
  * 'buf_len' : 0 to no bufferization
  * 'prefix'  :
  *      NULL - LOG_DEFAULT_PREFIX
@@ -56,10 +57,10 @@ typedef struct _LogInfo {
  *      %Y - day.month.year
  *      %Z - day.month.year hour:min:sec
  */
-LogInfo log_create( LOG_LEVEL level, const char *file, const char *prefix,
+LogInfo log_create( LOG_FLAGS level, const char *file, const char *prefix,
                     size_t buf_size );
 void log_destroy( LogInfo log );
-void plog( LogInfo log, LOG_LEVEL level, const char *fmt, ... );
+void plog( LogInfo log, LOG_FLAGS level, const char *fmt, ... );
 
 #define dlog( log, fmt, ... )   plog( (log), LOG_LEVEL_DEBUG, (fmt), __VA_ARGS__ )
 #define ilog( log, fmt, ... )   plog( (log), LOG_LEVEL_INFO,  (fmt), __VA_ARGS__ )

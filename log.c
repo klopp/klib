@@ -10,11 +10,11 @@
 #include <stdarg.h>
 #include <time.h>
 
-static const char *_log_long_title( LOG_LEVEL level )
+static const char *_log_long_title( LOG_FLAGS level )
 {
     size_t i = 0;
     static struct {
-        LOG_LEVEL level;
+        LOG_FLAGS level;
         const char *title;
     } titles[] = { { LOG_LEVEL_DEBUG, "debug" }, { LOG_LEVEL_INFO, "info " }, { LOG_LEVEL_WARN, "warn " }, {
             LOG_LEVEL_ERROR,
@@ -33,11 +33,11 @@ static const char *_log_long_title( LOG_LEVEL level )
     return "log";
 }
 
-static const char *_log_short_title( LOG_LEVEL level )
+static const char *_log_short_title( LOG_FLAGS level )
 {
     size_t i = 0;
     static struct {
-        LOG_LEVEL level;
+        LOG_FLAGS level;
         const char *title;
     } titles[] = { { LOG_LEVEL_DEBUG, "#" }, { LOG_LEVEL_INFO, "i" }, { LOG_LEVEL_WARN, "?" }, { LOG_LEVEL_ERROR, "!" }, {
             LOG_LEVEL_FATAL, "*"
@@ -90,7 +90,7 @@ static void _log_flush( LogInfo log )
     }
 }
 
-LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
+LogInfo log_create( LOG_FLAGS level, const char *file, const char *format,
                     size_t buf_size )
 {
     LogInfo log = Calloc( sizeof( struct _LogInfo ), 1 );
@@ -140,7 +140,7 @@ LogInfo log_create( LOG_LEVEL level, const char *file, const char *format,
         }
     }
 
-    log->level = level;
+    log->flags = level;
     __initlock( log->lock );
     return log;
 }
@@ -228,7 +228,7 @@ static void _log_cat_buf( LogInfo log, const char *buf, size_t blen )
     }
 }
 
-static size_t _log_make_prefix( LogInfo log, LOG_LEVEL level )
+static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
 {
     const char *fmt = log->prefix;
     size_t size = 0;
@@ -376,9 +376,9 @@ static size_t _log_make_prefix( LogInfo log, LOG_LEVEL level )
     return size;
 }
 
-void plog( LogInfo log, LOG_LEVEL level, const char *fmt, ... )
+void plog( LogInfo log, LOG_FLAGS level, const char *fmt, ... )
 {
-    if( log->level & level ) {
+    if( log->flags & level ) {
         int handle = -1;
         size_t size;
         __lock( log->lock );
@@ -408,6 +408,7 @@ void plog( LogInfo log, LOG_LEVEL level, const char *fmt, ... )
             char *ptr;
             int n;
             va_list ap;
+            int cr = ( log->flags & LOG_APPEND_CR ) != 0;
             va_start( ap, fmt );
             n = vsnprintf( log->ibuf, log->ibuf_size, fmt, ap );
             va_end( ap );
@@ -416,7 +417,12 @@ void plog( LogInfo log, LOG_LEVEL level, const char *fmt, ... )
                 break;
             }
 
-            if( n < log->ibuf_size ) {
+            if( n + cr < log->ibuf_size ) {
+                if( cr ) {
+                    log->ibuf[n] = '\n';
+                    n++;
+                }
+
                 if( !log->buf ) {
                     write( handle, log->ibuf, n );
                 }
@@ -427,14 +433,14 @@ void plog( LogInfo log, LOG_LEVEL level, const char *fmt, ... )
                 break;
             }
 
-            ptr = Realloc( log->ibuf, n + 1 );
+            ptr = Realloc( log->ibuf, n + 1 + cr );
 
             if( !ptr ) {
                 break;
             }
 
             log->ibuf = ptr;
-            log->ibuf_size = n + 1;
+            log->ibuf_size = n + 1 + cr;
         }
 
         if( handle >= 0 && handle != fileno( stdout ) && handle != fileno( stderr ) ) {
