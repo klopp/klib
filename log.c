@@ -79,7 +79,7 @@ static void _log_flush( LogInfo log )
             write( handle, log->buf, log->in_buf );
             log->in_buf = 0;
 
-            if( handle != fileno( stdin ) && handle != fileno( stderr ) ) {
+            if( handle != fileno( stdout ) && handle != fileno( stderr ) ) {
                 close( handle );
             }
         }
@@ -208,12 +208,14 @@ static size_t _log_cat_buf( LogInfo log, const char *buf, size_t blen )
         size_t to_copy = blen;
 
         if( log->in_buf + blen >= log->buf_size ) {
-            to_copy = log->buf_size = log->in_buf;
+            to_copy = log->buf_size - log->in_buf;
             memcpy( log->buf + log->in_buf, buf, to_copy );
+            log->in_buf += to_copy;
             _log_flush( log );
         }
         else {
             memcpy( log->buf + log->in_buf, buf, blen );
+            log->in_buf += to_copy;
         }
 
         buf += to_copy;
@@ -395,7 +397,7 @@ static void _log( LogInfo log, LOG_LEVEL level, const char *fmt, va_list ap )
         }
     }
 
-    if( handle >= 0 && handle != fileno( stdin ) && handle != fileno( stderr ) ) {
+    if( handle >= 0 && handle != fileno( stdout ) && handle != fileno( stderr ) ) {
         close( handle );
     }
 }
