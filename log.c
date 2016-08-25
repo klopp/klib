@@ -32,7 +32,7 @@ static const char *_log_title( LOG_FLAGS level, log_titles *titles,
 static const char *_log_long_title( LOG_FLAGS level )
 {
     static log_titles titles[] = {
-        { LOG_LEVEL_DEBUG, "debug" }, { LOG_LEVEL_INFO, "info " }, { LOG_LEVEL_WARN, "warn " }, {
+        { LOG_LEVEL_DEBUG, "debug" }, { LOG_LEVEL_INFO, "info" }, { LOG_LEVEL_WARN, "warn" }, {
             LOG_LEVEL_ERROR, "error"
         }, { LOG_LEVEL_FATAL, "fatal" }, { 0, NULL }
     };

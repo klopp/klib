@@ -40,23 +40,28 @@ typedef struct _LogInfo {
 } *LogInfo;
 
 #define LOG_BUF_MIN_SIZE            (1024 * 4)
-#define LOG_IBUF_MIN_SIZE           64
+#define LOG_IBUF_MIN_SIZE           128
 #define LOG_DEFAULT_PREFIX          "[%s] %Z"
 
 /*
- * 'file'    : NULL, "-" -> stdout, "=" -> stderr
- * 'buf_len' : 0 to no bufferization
- * 'prefix'  :
+ * 'file'       :
+ *      "=" - stderr
+ *      NULL,
+ *      "-" - stdout
+ * 'buf_size'   :
+ *      0 - no bufferization
+ * 'prefix'     :
  *      NULL - LOG_DEFAULT_PREFIX
  *      "" - no prefix
+ *      %p - current PID
  *      %l - verbose log level ("debug", "info", "warn", "error", "fatal")
  *      %s - short log level ("dbg", "inf", "wrn", "err", "fat")
  *      %~ - symbol log level ("#", "i", "?", "!", "*")
- *      %p - PID
- *      %d, %m, %y, %H, %M, %S - day, month, year, hour, min, sec
- *      %X - hour:min:sec
- *      %Y - day.month.year
- *      %Z - day.month.year hour:min:sec
+ *      %d, %m, %y,
+ *      %H, %M, %S - day, month, year, hour, min, sec (numeric, zero-padded)
+ *      %X - alias for "%H:%M:%S"
+ *      %Y - alias for "%d.%m.%y"
+ *      %Z - alias for "%d.%m.%y %H:%M:%S"
  */
 LogInfo log_create( LOG_FLAGS level, const char *file, const char *prefix,
                     size_t buf_size );
