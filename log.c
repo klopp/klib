@@ -42,6 +42,16 @@ static const char *_log_long_title( LOG_FLAGS level )
 static const char *_log_short_title( LOG_FLAGS level )
 {
     static log_titles titles[] = {
+        { LOG_LEVEL_DEBUG, "dbg" }, { LOG_LEVEL_INFO, "inf" }, { LOG_LEVEL_WARN, "wrn" }, {
+            LOG_LEVEL_ERROR, "err"
+        }, { LOG_LEVEL_FATAL, "fat" }, {0, NULL }
+    };
+    return _log_title( level, titles, "@" );
+}
+
+static const char *_log_sym_title( LOG_FLAGS level )
+{
+    static log_titles titles[] = {
         { LOG_LEVEL_DEBUG, "#" }, { LOG_LEVEL_INFO, "i" }, { LOG_LEVEL_WARN, "?" }, {
             LOG_LEVEL_ERROR, "!"
         }, { LOG_LEVEL_FATAL, "*" }, {0, NULL }
@@ -247,14 +257,21 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
                     break;
 
                 case 'l':
+                    if( !( size = _log_cat_ibuf( log, _log_long_title( level ), size ) ) ) {
+                        return 0;
+                    }
+
+                    break;
+
+                case 's':
                     if( !( size = _log_cat_ibuf( log, _log_short_title( level ), size ) ) ) {
                         return 0;
                     }
 
                     break;
 
-                case 'L':
-                    if( !( size = _log_cat_ibuf( log, _log_long_title( level ), size ) ) ) {
+                case '~':
+                    if( !( size = _log_cat_ibuf( log, _log_sym_title( level ), size ) ) ) {
                         return 0;
                     }
 
