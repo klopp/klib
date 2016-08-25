@@ -22,6 +22,7 @@ typedef enum _LOG_FLAGS
     LOG_LEVEL_ERROR = 0x08,
     LOG_LEVEL_FATAL = 0x10,
     LOG_APPEND_CR = 0x400,
+    LOG_USE_GMTIME = 0x800,
     LOG_LEVEL_DEFAULT = LOG_LEVEL_INFO | LOG_LEVEL_WARN | LOG_LEVEL_ERROR |
                         LOG_LEVEL_FATAL
 }
@@ -36,6 +37,7 @@ typedef struct _LogInfo {
     size_t ibuf_size;
     size_t in_buf;
     LOG_FLAGS flags;
+    struct tm *( *timefunc )( const time_t * );
     __lock_t( lock );
 } *LogInfo;
 
