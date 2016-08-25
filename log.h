@@ -41,7 +41,7 @@ typedef struct _LogInfo {
 
 #define LOG_BUF_MIN_SIZE            (1024 * 4)
 #define LOG_IBUF_MIN_SIZE           64
-#define LOG_DEFAULT_PREFIX          "[%s] %Z "
+#define LOG_DEFAULT_PREFIX          "[%s] %Z"
 
 /*
  * 'file'    : NULL, "-" -> stdout, "=" -> stderr

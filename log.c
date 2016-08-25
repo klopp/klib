@@ -94,7 +94,7 @@ static void _log_flush( LogInfo log )
     }
 }
 
-LogInfo log_create( LOG_FLAGS level, const char *file, const char *format,
+LogInfo log_create( LOG_FLAGS level, const char *file, const char *prefix,
                     size_t buf_size )
 {
     LogInfo log = Calloc( sizeof( struct _LogInfo ), 1 );
@@ -122,10 +122,10 @@ LogInfo log_create( LOG_FLAGS level, const char *file, const char *format,
         }
     }
 
-    log->prefix = ( format ? ( *format ? Strdup( format ) : NULL ) : Strdup(
+    log->prefix = ( prefix ? ( *prefix ? Strdup( prefix ) : NULL ) : Strdup(
                             LOG_DEFAULT_PREFIX ) );
 
-    if( ( ( format && *format ) || !format ) && !log->prefix ) {
+    if( ( ( prefix && *prefix ) || !prefix ) && !log->prefix ) {
         Free( log->ibuf );
         Free( log->buf );
         Free( log );
@@ -381,6 +381,15 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
         if( !_log_check_ibuf( log, size ) ) {
             return 0;
         }
+    }
+
+    if( size && log->ibuf[size - 1] != ' ' ) {
+        if( !_log_check_ibuf( log, size + 1 ) ) {
+            return 0;
+        }
+
+        log->ibuf[size] = ' ';
+        size++;
     }
 
     log->ibuf[size] = 0;
