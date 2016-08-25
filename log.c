@@ -160,14 +160,14 @@ void log_destroy( LogInfo log )
     Free( log );
 }
 
-static struct tm *_log_init_time( LogInfo log, struct tm *tnow )
+static struct tm *_log_init_time( LogInfo log )
 {
-    if( !tnow ) {
+    if( !log->tnow ) {
         time_t tt = time( NULL );
-        return log->timefunc( &tt );
+        log->tnow = log->timefunc( &tt );
     }
 
-    return tnow;
+    return log->tnow;
 }
 
 static int _log_check_ibuf( LogInfo log, size_t size )
@@ -237,8 +237,8 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
 {
     const char *fmt = log->prefix;
     size_t size = 0;
-    struct tm *tnow = NULL;
     char buf[0x40];
+    log->tnow = NULL;
 
     while( *fmt ) {
         if( *fmt != '%' ) {
@@ -279,8 +279,8 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
                     break;
 
                 case 'd':
-                    tnow = _log_init_time( log, tnow );
-                    sprintf( buf, "%02u", tnow->tm_mday );
+                    _log_init_time( log );
+                    sprintf( buf, "%02u", log->tnow->tm_mday );
 
                     if( !( size = _log_cat_ibuf( log, buf, size ) ) ) {
                         return 0;
@@ -289,8 +289,8 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
                     break;
 
                 case 'm':
-                    tnow = _log_init_time( log, tnow );
-                    sprintf( buf, "%02u", tnow->tm_mon + 1 );
+                    _log_init_time( log );
+                    sprintf( buf, "%02u", log->tnow->tm_mon + 1 );
 
                     if( !( size = _log_cat_ibuf( log, buf, size ) ) ) {
                         return 0;
@@ -299,8 +299,8 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
                     break;
 
                 case 'y':
-                    tnow = _log_init_time( log, tnow );
-                    sprintf( buf, "%04u", tnow->tm_year + 1900 );
+                    _log_init_time( log );
+                    sprintf( buf, "%04u", log->tnow->tm_year + 1900 );
 
                     if( !( size = _log_cat_ibuf( log, buf, size ) ) ) {
                         return 0;
@@ -309,8 +309,8 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
                     break;
 
                 case 'H':
-                    tnow = _log_init_time( log, tnow );
-                    sprintf( buf, "%02u", tnow->tm_hour );
+                    _log_init_time( log );
+                    sprintf( buf, "%02u", log->tnow->tm_hour );
 
                     if( !( size = _log_cat_ibuf( log, buf, size ) ) ) {
                         return 0;
@@ -319,8 +319,8 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
                     break;
 
                 case 'M':
-                    tnow = _log_init_time( log, tnow );
-                    sprintf( buf, "%02u", tnow->tm_min );
+                    _log_init_time( log );
+                    sprintf( buf, "%02u", log->tnow->tm_min );
 
                     if( !( size = _log_cat_ibuf( log, buf, size ) ) ) {
                         return 0;
@@ -329,8 +329,8 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
                     break;
 
                 case 'S':
-                    tnow = _log_init_time( log, tnow );
-                    sprintf( buf, "%02u", tnow->tm_sec );
+                    _log_init_time( log );
+                    sprintf( buf, "%02u", log->tnow->tm_sec );
 
                     if( !( size = _log_cat_ibuf( log, buf, size ) ) ) {
                         return 0;
@@ -339,8 +339,9 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
                     break;
 
                 case 'X':
-                    tnow = _log_init_time( log, tnow );
-                    sprintf( buf, "%02u:%02u:%02u", tnow->tm_hour, tnow->tm_min, tnow->tm_sec );
+                    _log_init_time( log );
+                    sprintf( buf, "%02u:%02u:%02u", log->tnow->tm_hour, log->tnow->tm_min,
+                             log->tnow->tm_sec );
 
                     if( !( size = _log_cat_ibuf( log, buf, size ) ) ) {
                         return 0;
@@ -349,9 +350,9 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
                     break;
 
                 case 'Y':
-                    tnow = _log_init_time( log, tnow );
-                    sprintf( buf, "%02u.%02u.%04u", tnow->tm_mday, tnow->tm_mon + 1,
-                             tnow->tm_year + 1900 );
+                    _log_init_time( log );
+                    sprintf( buf, "%02u.%02u.%04u", log->tnow->tm_mday, log->tnow->tm_mon + 1,
+                             log->tnow->tm_year + 1900 );
 
                     if( !( size = _log_cat_ibuf( log, buf, size ) ) ) {
                         return 0;
@@ -360,9 +361,11 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
                     break;
 
                 case 'Z':
-                    tnow = _log_init_time( log, tnow );
-                    sprintf( buf, "%02u.%02u.%04u %02u:%02u:%02u", tnow->tm_mday, tnow->tm_mon + 1,
-                             tnow->tm_year + 1900, tnow->tm_hour, tnow->tm_min, tnow->tm_sec );
+                    _log_init_time( log );
+                    sprintf( buf, "%02u.%02u.%04u %02u:%02u:%02u", log->tnow->tm_mday,
+                             log->tnow->tm_mon + 1,
+                             log->tnow->tm_year + 1900, log->tnow->tm_hour, log->tnow->tm_min,
+                             log->tnow->tm_sec );
 
                     if( !( size = _log_cat_ibuf( log, buf, size ) ) ) {
                         return 0;

@@ -38,12 +38,13 @@ typedef struct _LogInfo {
     size_t in_buf;
     LOG_FLAGS flags;
     struct tm *( *timefunc )( const time_t * );
+    struct tm *tnow;
     __lock_t( lock );
 } *LogInfo;
 
 #define LOG_BUF_MIN_SIZE            (1024 * 4)
 #define LOG_IBUF_MIN_SIZE           128
-#define LOG_DEFAULT_PREFIX          "[%s] %Z"
+#define LOG_DEFAULT_PREFIX          "[%~] %Z"
 
 /*
  * 'file'       :
