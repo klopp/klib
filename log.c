@@ -78,7 +78,7 @@ static int _log_get_handle( LogInfo log )
     return open( log->file, O_APPEND | O_CREAT );
 }
 
-static void _log_flush( LogInfo log )
+void log_flush( LogInfo log )
 {
     if( log->buf && log->in_buf ) {
         int handle = _log_get_handle( log );
@@ -151,7 +151,7 @@ LogInfo log_create( LOG_FLAGS level, const char *file, const char *prefix,
 
 void log_destroy( LogInfo log )
 {
-    _log_flush( log );
+    log_flush( log );
     Free( log->prefix );
     Free( log->file );
     Free( log->ibuf );
@@ -220,7 +220,7 @@ static void _log_cat_buf( LogInfo log, const char *buf, size_t blen )
             to_copy = log->buf_size - log->in_buf;
             memcpy( log->buf + log->in_buf, buf, to_copy );
             log->in_buf += to_copy;
-            _log_flush( log );
+            log_flush( log );
         }
         else {
             memcpy( log->buf + log->in_buf, buf, blen );

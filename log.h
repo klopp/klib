@@ -60,6 +60,7 @@ typedef struct _LogInfo {
  */
 LogInfo log_create( LOG_FLAGS level, const char *file, const char *prefix,
                     size_t buf_size );
+void log_flush( LogInfo log );
 void log_destroy( LogInfo log );
 void plog( LogInfo log, LOG_FLAGS level, const char *fmt, ... );
 
