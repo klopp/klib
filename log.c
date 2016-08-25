@@ -10,11 +10,17 @@
 #include <stdarg.h>
 #include <time.h>
 
+/*
+ * Internal data structure, represent log levels abreviations:
+ */
 typedef struct _log_titles {
     LOG_FLAGS level;
     const char *title;
 } log_titles;
 
+/*
+ * Internal, get log levels abreviations:
+ */
 static const char *_log_title( LOG_FLAGS level, log_titles *titles,
                                const char *dflt )
 {
@@ -29,6 +35,9 @@ static const char *_log_title( LOG_FLAGS level, log_titles *titles,
     return dflt;
 }
 
+/*
+ * Long log levels abreviations:
+ */
 static const char *_log_long_title( LOG_FLAGS level )
 {
     static log_titles titles[] = {
@@ -39,6 +48,9 @@ static const char *_log_long_title( LOG_FLAGS level )
     return _log_title( level, titles, "log" );
 }
 
+/*
+ * Short log levels abreviations:
+ */
 static const char *_log_short_title( LOG_FLAGS level )
 {
     static log_titles titles[] = {
@@ -49,6 +61,9 @@ static const char *_log_short_title( LOG_FLAGS level )
     return _log_title( level, titles, "@" );
 }
 
+/*
+ * Symbolic log levels abreviations:
+ */
 static const char *_log_sym_title( LOG_FLAGS level )
 {
     static log_titles titles[] = {
@@ -59,6 +74,9 @@ static const char *_log_sym_title( LOG_FLAGS level )
     return _log_title( level, titles, "@" );
 }
 
+/*
+ * Get log file handle. Open file or return stderr/stdout:
+ */
 static int _log_get_handle( LogInfo log )
 {
     if( !log->file || !log->file[0] ) {
@@ -94,6 +112,9 @@ void log_flush( LogInfo log )
     }
 }
 
+/*
+ * Create log info structure:
+ */
 LogInfo log_create( LOG_FLAGS flags, const char *file, const char *prefix,
                     size_t buf_size )
 {
@@ -150,6 +171,9 @@ LogInfo log_create( LOG_FLAGS flags, const char *file, const char *prefix,
     return log;
 }
 
+/*
+ * Destroy log info structure. Unsaved buffer will be saved.
+ */
 void log_destroy( LogInfo log )
 {
     log_flush( log );
@@ -160,6 +184,9 @@ void log_destroy( LogInfo log )
     Free( log );
 }
 
+/*
+ * Lazy time initialization:
+ */
 static struct tm *_log_init_time( LogInfo log )
 {
     if( !log->tnow ) {
@@ -170,6 +197,9 @@ static struct tm *_log_init_time( LogInfo log )
     return log->tnow;
 }
 
+/*
+ * Expand internal buffer if needed:
+ */
 static int _log_check_ibuf( LogInfo log, size_t size )
 {
     if( size >= log->ibuf_size ) {
@@ -189,6 +219,9 @@ static int _log_check_ibuf( LogInfo log, size_t size )
     return 1;
 }
 
+/*
+ * Move internal buffer content to common buffer:
+ */
 static size_t _log_cat_ibuf( LogInfo log, const char *buf, size_t size )
 {
     size_t blen = strlen( buf );
@@ -233,6 +266,9 @@ static void _log_cat_buf( LogInfo log, const char *buf, size_t blen )
     }
 }
 
+/*
+ * Make log prefix and move it to common buffer:
+ */
 static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
 {
     const char *fmt = log->prefix;
@@ -400,6 +436,9 @@ static size_t _log_make_prefix( LogInfo log, LOG_FLAGS level )
     return size;
 }
 
+/*
+ * Main log function:
+ */
 void plog( LogInfo log, LOG_FLAGS level, const char *fmt, ... )
 {
     if( log->flags & level ) {
