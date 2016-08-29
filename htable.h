@@ -94,7 +94,7 @@ int HT_delete( HTable ht, const void *key, size_t key_size );
  * ... etc
  */
 HTItem HT_set_c( HTable ht, const char *key, void *data );
-void *HT_get_c( HTable ht, const char *key );
+HTItem HT_get_c( HTable ht, const char *key );
 int HT_delete_c( HTable ht, const char *key );
 
 /*
