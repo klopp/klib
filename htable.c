@@ -316,7 +316,7 @@ int _HT_Expand( HTable ht )
  * Get hash table item data. Return data found or NULL. Set internal
  * error code.
  */
-void *HT_get( HTable ht, const void *key, size_t key_size )
+HTItem HT_get( HTable ht, const void *key, size_t key_size )
 {
     unsigned int hash;
     HTItem e;
@@ -335,7 +335,7 @@ void *HT_get( HTable ht, const void *key, size_t key_size )
     }
 
     __unlock( ht->lock );
-    return e ? e->data : NULL;
+    return e;
 }
 
 /*
@@ -478,7 +478,7 @@ int HT_delete_c( HTable ht, const char *key )
     HTItem HT_set_##tag( HTable ht, type key, void *data ) { \
         return HT_set( ht, &key, sizeof(key), data ); \
     } \
-    void *HT_get_##tag( HTable ht, type key) {; \
+    HTItem HT_get_##tag( HTable ht, type key) {; \
         return HT_get( ht, &key, sizeof(key) ); \
     } \
     int HT_delete_##tag( HTable ht, type key) { \

@@ -85,7 +85,7 @@ HTable HT_enable_reduce( HTable ht );
  * Used error codes (HTable.error): 0 (no errors), ENOKEY, ENOMEM
  */
 HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data );
-void *HT_get( HTable ht, const void *key, size_t key_size );
+HTItem HT_get( HTable ht, const void *key, size_t key_size );
 int HT_delete( HTable ht, const void *key, size_t key_size );
 
 /*
@@ -105,7 +105,7 @@ int HT_delete_c( HTable ht, const char *key );
  */
 #define HT_INTEGER_DECL(tag, type) \
     HTItem HT_set_##tag( HTable ht, type key, void *data ); \
-    void *HT_get_##tag( HTable ht, type key); \
+    HTItem HT_get_##tag( HTable ht, type key); \
     int HT_delete_##tag( HTable ht, type key);
 
 HT_INTEGER_DECL( szt, size_t );
