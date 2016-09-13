@@ -551,6 +551,9 @@ int HT_delete_c( HTable ht, const char *key )
     HTItem HT_get_##tag( HTable ht, type key) {; \
         return HT_get( ht, &key, sizeof(key) ); \
     } \
+    void *HT_val_##tag( HTable ht, type key) {; \
+        return HT_val( ht, &key, sizeof(key) ); \
+    } \
     int HT_delete_##tag( HTable ht, type key) { \
         return HT_delete( ht, &key, sizeof(key) ); \
     }

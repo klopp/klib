@@ -119,6 +119,7 @@ int HT_delete_c( HTable ht, const char *key );
 #define HT_INTEGER_DECL(tag, type) \
     HTItem HT_set_##tag( HTable ht, type key, void *data ); \
     HTItem HT_get_##tag( HTable ht, type key); \
+    void *HT_val_##tag( HTable ht, type key); \
     int HT_delete_##tag( HTable ht, type key);
 
 HT_INTEGER_DECL( szt, size_t );
