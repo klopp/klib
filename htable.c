@@ -98,7 +98,7 @@ static void _HT_Destroy_Item( HTItem e, HTable ht )
         ht->destructor( e->data );
     }
 
-    Free( e->key );
+    Free( e->key.key );
     Free( e );
 }
 
@@ -326,7 +326,7 @@ HTItem HT_get( HTable ht, const void *key, size_t key_size )
     ht->error = ENOKEY;
 
     while( e ) {
-        if( e->key_size == key_size && !memcmp( e->key, key, key_size ) ) {
+        if( e->key.size == key_size && !memcmp( e->key.key, key, key_size ) ) {
             ht->error = 0;
             break;
         }
@@ -358,7 +358,8 @@ int HT_delete( HTable ht, const void *key, size_t key_size )
     ht->error = ENOKEY;
 
     while( cursor ) {
-        if( cursor->key_size == key_size && !memcmp( cursor->key, key, key_size ) ) {
+        if( cursor->key.size == key_size &&
+                !memcmp( cursor->key.key, key, key_size ) ) {
             if( !e ) {
                 ht->items[idx] = cursor->next;
             }
@@ -370,7 +371,7 @@ int HT_delete( HTable ht, const void *key, size_t key_size )
                 ht->destructor( cursor->data );
             }
 
-            Free( cursor->key );
+            Free( cursor->key.key );
             Free( cursor );
             ht->nitems--;
             ht->error = 0;
@@ -407,7 +408,7 @@ HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data )
     e = ht->items[idx];
 
     while( e ) {
-        if( e->key_size == key_size && !memcmp( e->key, key, key_size ) ) {
+        if( e->key.size == key_size && !memcmp( e->key.key, key, key_size ) ) {
             if( ht->destructor ) {
                 ht->destructor( e->data );
             }
@@ -429,17 +430,17 @@ HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data )
         return NULL;
     }
 
-    item->key = Malloc( key_size );
+    item->key.key = Malloc( key_size );
 
-    if( !item->key ) {
+    if( !item->key.key ) {
         ht->error = ENOMEM;
         Free( item );
         __unlock( ht->lock );
         return NULL;
     }
 
-    memcpy( item->key, key, key_size );
-    item->key_size = key_size;
+    memcpy( item->key.key, key, key_size );
+    item->key.size = key_size;
     item->data = data;
     item->next = NULL;
     item->hash = hash;
@@ -464,7 +465,7 @@ HTItem HT_set_c( HTable ht, const char *key, void *data )
     return HT_set( ht, key, strlen( key ), data );
 }
 
-void *HT_get_c( HTable ht, const char *key )
+HTItem HT_get_c( HTable ht, const char *key )
 {
     return HT_get( ht, key, strlen( key ) );
 }

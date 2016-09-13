@@ -21,9 +21,14 @@ extern "C" {
 
 #define HT_MIN_SIZE     64
 
-typedef struct _HTItem {
+typedef struct _HIKey {
     void *key;
-    size_t key_size;
+    size_t size;
+
+} *HIKey;
+
+typedef struct _HTItem {
+    struct _HIKey key;
     void *data;
     unsigned int hash;
     struct _HTItem *next;
