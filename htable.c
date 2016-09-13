@@ -66,6 +66,7 @@ HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
     }
 
     ht->nitems = 0;
+    ht->order = 0;
     ht->hf = NULL;
     ht->destructor = destructor;
     ht->error = 0;
@@ -118,6 +119,7 @@ void HT_clear( HTable ht )
 
     ht->nitems = 0;
     ht->error = 0;
+    ht->order = 0;
     __unlock( ht->lock );
 }
 
@@ -473,6 +475,7 @@ HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data )
 
     memcpy( item->key.key, key, key_size );
     item->key.size = key_size;
+    item->order = ht->order++;
     item->data = data;
     item->next = NULL;
     item->hash = hash;

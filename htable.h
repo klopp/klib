@@ -24,7 +24,6 @@ extern "C" {
 typedef struct _HIKey {
     void *key;
     size_t size;
-
 } *HIKey;
 
 typedef struct _HTItem {
@@ -32,6 +31,7 @@ typedef struct _HTItem {
     void *data;
     unsigned int hash;
     struct _HTItem *next;
+    size_t order;
 } *HTItem;
 
 typedef enum {
@@ -56,6 +56,7 @@ typedef struct _HTable {
     HT_Destructor destructor;
     HT_Hash_Function hf;
     HT_Flags flags;
+    size_t order;
     int error;
     __lock_t( lock );
 } *HTable;
