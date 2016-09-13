@@ -218,67 +218,6 @@ HTItem *HT_ordered_items( HTable ht )
     return items;
 }
 
-/*
-static void _HT_keys( HTItem item, void *data )
-{
-    struct {
-        HIKey keys;
-        size_t idx;
-        size_t nitems;
-    } *ptr = data;
-
-    if( !ptr->keys ) {
-        ptr->keys = Malloc( sizeof( struct _HIKey ) * ptr->nitems );
-    }
-
-    if( ptr->keys ) {
-        ptr->keys[ptr->idx++] = item->key;
-    }
-}
-
-HIKey HT_keys( HTable ht )
-{
-    struct {
-        HIKey keys;
-        size_t idx;
-        size_t items;
-    } data = { NULL, 0, ht->nitems };
-
-    if( ht->nitems ) {
-        HT_foreach( ht, _HT_keys, &data );
-    }
-
-    return data.keys;
-}
-
-static int _HIKey_order( const void *a, const void *b )
-{
-    const HIKey ka = ( const HIKey )a;
-    const HIKey kb = ( const HIKey )b;
-
-    if( ka->order > kb->order ) {
-        return 1;
-    }
-
-    if( ka->order < kb->order ) {
-        return -1;
-    }
-
-    return 0;
-}
-
-HIKey HT_ordered_keys( HTable ht )
-{
-    HIKey keys = HT_keys( ht );
-
-    if( keys ) {
-        qsort( keys, ht->nitems, sizeof( struct _HIKey ), _HIKey_order );
-    }
-
-    return keys;
-}
-
-*/
 
 /*
  * Returm max items bucket length:
