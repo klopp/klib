@@ -400,6 +400,12 @@ HTItem HT_get( HTable ht, const void *key, size_t key_size )
     return e;
 }
 
+void *HT_val( HTable ht, const void *key, size_t key_size )
+{
+    HTItem item = HT_get( ht, key, key_size );
+    return item ? item->data : NULL;
+}
+
 /*
  * Delete hash table item. Return 1 (success) or 0 (not found). Set internal
  * error code.

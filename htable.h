@@ -98,6 +98,7 @@ HTable HT_enable_reduce( HTable ht );
  */
 HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data );
 HTItem HT_get( HTable ht, const void *key, size_t key_size );
+void *HT_val( HTable ht, const void *key, size_t key_size );
 int HT_delete( HTable ht, const void *key, size_t key_size );
 
 /*
