@@ -276,6 +276,12 @@ HTItem *HT_ordered_items( HTable ht )
     return HT_sorted_items( ht, _HTItem_order );
 }
 
+HTItem *HT_sort_items( HTItem *items, size_t nitems, HT_Compare compare )
+{
+    _HT_QSort( items, nitems, compare );
+    return items;
+}
+
 HTItem *HT_sorted_items( HTable ht, HT_Compare compare )
 {
     HTItem *items = HT_items( ht );
