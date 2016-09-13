@@ -159,38 +159,66 @@ void HT_foreach( HTable ht, HT_Foreach foreach, void *data )
     __unlock( ht->lock );
 }
 
-static void _HT_values( HTItem item, void *data )
+static void _HT_items( HTItem item, void *data )
 {
     struct {
-        void **values;
+        HTItem *items;
         size_t idx;
         size_t nitems;
     } *ptr = data;
 
-    if( !ptr->values ) {
-        ptr->values = Malloc( sizeof( void * ) * ptr->nitems );
+    if( !ptr->items ) {
+        ptr->items = Malloc( sizeof( HTItem ) * ptr->nitems );
     }
 
-    if( ptr->values ) {
-        ptr->values[ptr->idx++] = item->data;
+    if( ptr->items ) {
+        ptr->items[ptr->idx++] = item;
     }
 }
 
-void **HT_values( HTable ht )
+HTItem *HT_items( HTable ht )
 {
     struct {
-        void **values;
+        HTItem *items;
         size_t idx;
-        size_t items;
+        size_t nitems;
     } data = { NULL, 0, ht->nitems };
 
     if( ht->nitems ) {
-        HT_foreach( ht, _HT_values, &data );
+        HT_foreach( ht, _HT_items, &data );
     }
 
-    return data.values;
+    return data.items;
 }
 
+static int _HTItem_order( const void *a, const void *b )
+{
+    const HTItem ka = *( const HTItem * )a;
+    const HTItem kb = *( const HTItem * )b;
+
+    if( ka->key.order > kb->key.order ) {
+        return 1;
+    }
+
+    if( ka->key.order < kb->key.order ) {
+        return -1;
+    }
+
+    return 0;
+}
+
+HTItem *HT_ordered_items( HTable ht )
+{
+    HTItem *items = HT_items( ht );
+
+    if( items ) {
+        qsort( items, ht->nitems, sizeof( HTItem ), _HTItem_order );
+    }
+
+    return items;
+}
+
+/*
 static void _HT_keys( HTItem item, void *data )
 {
     struct {
@@ -250,6 +278,7 @@ HIKey HT_ordered_keys( HTable ht )
     return keys;
 }
 
+*/
 
 /*
  * Returm max items bucket length:

@@ -31,6 +31,7 @@ typedef struct _HTItem {
     struct _HIKey key;
     void *data;
     unsigned int hash;
+    size_t order;
     struct _HTItem *next;
 } *HTItem;
 
@@ -78,11 +79,10 @@ void HT_destroy( HTable ht );
 void HT_foreach( HTable ht, HT_Foreach foreach, void *data );
 
 /*
- * Get all hash table keys:
+ * Get all hash table items:
  */
-HIKey HT_keys( HTable ht );
-HIKey HT_ordered_keys( HTable ht );
-void **HT_values( HTable ht );
+HTItem *HT_items( HTable ht );
+HTItem *HT_ordered_items( HTable ht );
 
 size_t HT_max_bucket( HTable ht );
 /*
