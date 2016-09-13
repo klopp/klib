@@ -60,7 +60,7 @@ typedef struct _HTable {
     __lock_t( lock );
 } *HTable;
 
-typedef void ( *HT_Foreach )( HTItem item );
+typedef void ( *HT_Foreach )( HTItem item, void *data );
 
 /*
  * 'size' will be rounded up to the next highest power of 2: 100 => 128, 1000 => 1024 etc.
@@ -74,7 +74,12 @@ void HT_destroy( HTable ht );
 /*
  * Foreach iterator:
  */
-void HT_foreach( HTable ht, HT_Foreach foreach );
+void HT_foreach( HTable ht, HT_Foreach foreach, void *data );
+
+/*
+ * Get all hash table keys:
+ */
+HIKey HT_keys( HTable ht );
 
 size_t HT_max_bucket( HTable ht );
 /*

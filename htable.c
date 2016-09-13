@@ -131,30 +131,62 @@ void HT_destroy( HTable ht )
     Free( ht );
 }
 
-static void _HT_ForEach( HTItem item, HT_Foreach foreach )
+static void _HT_ForEach( HTItem item, HT_Foreach foreach, void *data )
 {
     if( item->next ) {
-        _HT_ForEach( item->next, foreach );
+        _HT_ForEach( item->next, foreach, data );
     }
 
-    foreach( item );
+    foreach( item, data );
 }
 
 /*
  * Foreach iterator:
  */
-void HT_foreach( HTable ht, HT_Foreach foreach )
+void HT_foreach( HTable ht, HT_Foreach foreach, void *data )
 {
     size_t i;
     __lock( ht->lock );
 
     for( i = 0; i < ht->size; i++ ) {
         if( ht->items[i] ) {
-            _HT_ForEach( ht->items[i], foreach );
+            _HT_ForEach( ht->items[i], foreach, data );
         }
     }
 
     __unlock( ht->lock );
+}
+
+static void _HT_keys( HTItem item, void *data )
+{
+    struct {
+        HIKey keys;
+        size_t idx;
+        size_t nitems;
+    } *ptr = data;
+
+    if( !ptr->keys ) {
+        ptr->keys = Malloc( sizeof( struct _HIKey ) * ptr->nitems );
+    }
+
+    if( ptr->keys ) {
+        ptr->keys[ptr->idx++] = item->key;
+    }
+}
+
+HIKey HT_keys( HTable ht )
+{
+    struct {
+        HIKey keys;
+        size_t idx;
+        size_t items;
+    } data = { NULL, 0, ht->nitems };
+
+    if( ht->nitems ) {
+        HT_foreach( ht, _HT_keys, &data );
+    }
+
+    return data.keys;
 }
 
 /*
