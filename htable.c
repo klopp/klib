@@ -213,7 +213,6 @@ void _HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
     long stackpos = 1;
     long ppos;
     HTItem pivot;
-    HTItem temp;
     lbstack[1] = 0;
     ubstack[1] = nitems - 1;
 
@@ -238,9 +237,12 @@ void _HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
                 }
 
                 if( i <= j ) {
-                    temp = items[i];
-                    items[i] = items[j];
-                    items[j] = temp;
+                    if( i != j ) {
+                        HTItem temp = items[i];
+                        items[i] = items[j];
+                        items[j] = temp;
+                    }
+
                     i++;
                     j--;
                 }
