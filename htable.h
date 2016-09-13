@@ -82,6 +82,7 @@ void HT_foreach( HTable ht, HT_Foreach foreach, void *data );
  */
 HIKey HT_keys( HTable ht );
 HIKey HT_ordered_keys( HTable ht );
+void **HT_values( HTable ht );
 
 size_t HT_max_bucket( HTable ht );
 /*

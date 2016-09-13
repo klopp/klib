@@ -159,6 +159,38 @@ void HT_foreach( HTable ht, HT_Foreach foreach, void *data )
     __unlock( ht->lock );
 }
 
+static void _HT_values( HTItem item, void *data )
+{
+    struct {
+        void **values;
+        size_t idx;
+        size_t nitems;
+    } *ptr = data;
+
+    if( !ptr->values ) {
+        ptr->values = Malloc( sizeof( void * ) * ptr->nitems );
+    }
+
+    if( ptr->values ) {
+        ptr->values[ptr->idx++] = item->data;
+    }
+}
+
+void **HT_values( HTable ht )
+{
+    struct {
+        void **values;
+        size_t idx;
+        size_t items;
+    } data = { NULL, 0, ht->nitems };
+
+    if( ht->nitems ) {
+        HT_foreach( ht, _HT_values, &data );
+    }
+
+    return data.values;
+}
+
 static void _HT_keys( HTItem item, void *data )
 {
     struct {
