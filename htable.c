@@ -165,7 +165,7 @@ static void _HT_items( HTItem item, void *data )
         HTItem *items;
         size_t idx;
         size_t nitems;
-    } *ptr = data;
+    }*ptr = data;
 
     if( !ptr->items ) {
         ptr->items = Malloc( sizeof( HTItem ) * ptr->nitems );
@@ -191,33 +191,101 @@ HTItem *HT_items( HTable ht )
     return data.items;
 }
 
-static int _HTItem_order( const void *a, const void *b )
+static int _HTItem_order( const HTItem a, const HTItem b )
 {
-    const HTItem ka = *( const HTItem * )a;
-    const HTItem kb = *( const HTItem * )b;
-
-    if( ka->key.order > kb->key.order ) {
+    if( a->key.order > b->key.order ) {
         return 1;
     }
 
-    if( ka->key.order < kb->key.order ) {
+    if( a->key.order < b->key.order ) {
         return -1;
     }
 
     return 0;
 }
 
+void _HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
+{
+    long i, j;
+    long lb, ub;
+    /* FIXME, magic number: */
+    long lbstack[512], ubstack[512];
+    long stackpos = 1;
+    long ppos;
+    HTItem pivot;
+    HTItem temp;
+    lbstack[1] = 0;
+    ubstack[1] = nitems - 1;
+
+    do {
+        lb = lbstack[stackpos];
+        ub = ubstack[stackpos];
+        stackpos--;
+
+        do {
+            ppos = ( lb + ub ) >> 1;
+            i = lb;
+            j = ub;
+            pivot = items[ppos];
+
+            do {
+                while( compare( items[i], pivot ) < 0 ) {
+                    i++;
+                }
+
+                while( compare( pivot, items[j] ) < 0 ) {
+                    j--;
+                }
+
+                if( i <= j ) {
+                    temp = items[i];
+                    items[i] = items[j];
+                    items[j] = temp;
+                    i++;
+                    j--;
+                }
+            }
+            while( i <= j );
+
+            if( i < ppos ) {
+                if( i < ub ) {
+                    stackpos++;
+                    lbstack[stackpos] = i;
+                    ubstack[stackpos] = ub;
+                }
+
+                ub = j;
+            }
+            else {
+                if( j > lb ) {
+                    stackpos++;
+                    lbstack[stackpos] = lb;
+                    ubstack[stackpos] = j;
+                }
+
+                lb = i;
+            }
+        }
+        while( lb < ub );
+    }
+    while( stackpos != 0 );
+}
+
 HTItem *HT_ordered_items( HTable ht )
+{
+    return HT_sorted_items( ht, _HTItem_order );
+}
+
+HTItem *HT_sorted_items( HTable ht, HT_Compare compare )
 {
     HTItem *items = HT_items( ht );
 
     if( items ) {
-        qsort( items, ht->nitems, sizeof( HTItem ), _HTItem_order );
+        _HT_QSort( items, ht->nitems, compare );
     }
 
     return items;
 }
-
 
 /*
  * Returm max items bucket length:

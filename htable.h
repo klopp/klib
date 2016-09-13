@@ -63,6 +63,7 @@ typedef struct _HTable {
 } *HTable;
 
 typedef void ( *HT_Foreach )( HTItem item, void *data );
+typedef int ( *HT_Compare )( const HTItem a, const HTItem b );
 
 /*
  * 'size' will be rounded up to the next highest power of 2: 100 => 128, 1000 => 1024 etc.
@@ -83,6 +84,7 @@ void HT_foreach( HTable ht, HT_Foreach foreach, void *data );
  */
 HTItem *HT_items( HTable ht );
 HTItem *HT_ordered_items( HTable ht );
+HTItem *HT_sorted_items( HTable ht, HT_Compare compare );
 
 size_t HT_max_bucket( HTable ht );
 /*
