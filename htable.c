@@ -191,6 +191,34 @@ HIKey HT_keys( HTable ht )
     return data.keys;
 }
 
+static int _HIKey_order( const void *a, const void *b )
+{
+    const HIKey ka = ( const HIKey )a;
+    const HIKey kb = ( const HIKey )b;
+
+    if( ka->order > kb->order ) {
+        return 1;
+    }
+
+    if( ka->order < kb->order ) {
+        return -1;
+    }
+
+    return 0;
+}
+
+HIKey HT_ordered_keys( HTable ht )
+{
+    HIKey keys = HT_keys( ht );
+
+    if( keys ) {
+        qsort( keys, ht->nitems, sizeof( struct _HIKey ), _HIKey_order );
+    }
+
+    return keys;
+}
+
+
 /*
  * Returm max items bucket length:
  */
@@ -475,7 +503,7 @@ HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data )
 
     memcpy( item->key.key, key, key_size );
     item->key.size = key_size;
-    item->order = ht->order++;
+    item->key.order = ht->order++;
     item->data = data;
     item->next = NULL;
     item->hash = hash;

@@ -19,11 +19,12 @@ extern "C" {
 #include "_lock.h"
 #include <errno.h>
 
-#define HT_MIN_SIZE     64
+#define HT_MIN_SIZE     4
 
 typedef struct _HIKey {
     void *key;
     size_t size;
+    size_t order;
 } *HIKey;
 
 typedef struct _HTItem {
@@ -31,7 +32,6 @@ typedef struct _HTItem {
     void *data;
     unsigned int hash;
     struct _HTItem *next;
-    size_t order;
 } *HTItem;
 
 typedef enum {
@@ -81,6 +81,7 @@ void HT_foreach( HTable ht, HT_Foreach foreach, void *data );
  * Get all hash table keys:
  */
 HIKey HT_keys( HTable ht );
+HIKey HT_ordered_keys( HTable ht );
 
 size_t HT_max_bucket( HTable ht );
 /*
