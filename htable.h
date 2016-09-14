@@ -19,19 +19,14 @@ extern "C" {
 #include "_lock.h"
 #include <errno.h>
 
-#define HT_MIN_SIZE     4
-
-typedef struct _HIKey {
-    void *key;
-    size_t size;
-    size_t order;
-} *HIKey;
+#define HT_MIN_SIZE     64
 
 typedef struct _HTItem {
-    struct _HIKey key;
+    void *key;
+    size_t key_size;
+    size_t order;
     void *data;
     unsigned int hash;
-    size_t order;
     struct _HTItem *next;
 } *HTItem;
 
@@ -42,7 +37,6 @@ typedef enum {
 HT_Hash_Functions;
 
 typedef unsigned int ( *HT_Hash_Function )( const void *data, size_t size );
-
 typedef void ( *HT_Destructor )( void *data );
 
 typedef enum _HT_Flags {
@@ -80,11 +74,20 @@ void HT_destroy( HTable ht );
 void HT_foreach( HTable ht, HT_Foreach foreach, void *data );
 
 /*
- * Get all hash table items:
+ * Get hash table items:
  */
 HTItem *HT_items( HTable ht );
+/*
+ * Get items sorted by insertion order:
+ */
 HTItem *HT_ordered_items( HTable ht );
+/*
+ * Get items with custom sorting:
+ */
 HTItem *HT_sorted_items( HTable ht, HT_Compare compare );
+/*
+ * Sort items array:
+ */
 HTItem *HT_sort_items( HTItem *items, size_t nitems, HT_Compare compare );
 
 size_t HT_max_bucket( HTable ht );

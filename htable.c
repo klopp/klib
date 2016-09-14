@@ -99,7 +99,7 @@ static void _HT_Destroy_Item( HTItem e, HTable ht )
         ht->destructor( e->data );
     }
 
-    Free( e->key.key );
+    Free( e->key );
     Free( e );
 }
 
@@ -193,11 +193,11 @@ HTItem *HT_items( HTable ht )
 
 static int _HTItem_order( const HTItem a, const HTItem b )
 {
-    if( a->key.order > b->key.order ) {
+    if( a->order > b->order ) {
         return 1;
     }
 
-    if( a->key.order < b->key.order ) {
+    if( a->order < b->order ) {
         return -1;
     }
 
@@ -464,7 +464,7 @@ HTItem HT_get( HTable ht, const void *key, size_t key_size )
     ht->error = ENOKEY;
 
     while( e ) {
-        if( e->key.size == key_size && !memcmp( e->key.key, key, key_size ) ) {
+        if( e->key_size == key_size && !memcmp( e->key, key, key_size ) ) {
             ht->error = 0;
             break;
         }
@@ -502,8 +502,8 @@ int HT_delete( HTable ht, const void *key, size_t key_size )
     ht->error = ENOKEY;
 
     while( cursor ) {
-        if( cursor->key.size == key_size &&
-                !memcmp( cursor->key.key, key, key_size ) ) {
+        if( cursor->key_size == key_size &&
+                !memcmp( cursor->key, key, key_size ) ) {
             if( !e ) {
                 ht->items[idx] = cursor->next;
             }
@@ -515,7 +515,7 @@ int HT_delete( HTable ht, const void *key, size_t key_size )
                 ht->destructor( cursor->data );
             }
 
-            Free( cursor->key.key );
+            Free( cursor->key );
             Free( cursor );
             ht->nitems--;
             ht->error = 0;
@@ -557,7 +557,7 @@ HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data )
     e = ht->items[idx];
 
     while( e ) {
-        if( e->key.size == key_size && !memcmp( e->key.key, key, key_size ) ) {
+        if( e->key_size == key_size && !memcmp( e->key, key, key_size ) ) {
             if( ht->destructor ) {
                 ht->destructor( e->data );
             }
@@ -579,18 +579,18 @@ HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data )
         return NULL;
     }
 
-    item->key.key = Malloc( key_size );
+    item->key = Malloc( key_size );
 
-    if( !item->key.key ) {
+    if( !item->key ) {
         ht->error = ENOMEM;
         Free( item );
         __unlock( ht->lock );
         return NULL;
     }
 
-    memcpy( item->key.key, key, key_size );
-    item->key.size = key_size;
-    item->key.order = ht->order++;
+    memcpy( item->key, key, key_size );
+    item->key_size = key_size;
+    item->order = ht->order++;
     item->data = data;
     item->next = NULL;
     item->hash = hash;
