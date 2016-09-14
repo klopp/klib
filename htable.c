@@ -525,7 +525,6 @@ int HT_del( HTable ht, const void *key, size_t key_size )
     int rc;
     size_t idx;
     __lock( ht->lock );
-    rc = 0;
     e = NULL;
     hash = ht->hf( key, key_size );
     idx = hash & HT_HASH_MASK( ht );
@@ -554,8 +553,6 @@ int HT_del( HTable ht, const void *key, size_t key_size )
                 ht->order = 0;
             }
 
-            rc++;
-
             if( ( ht->nitems < ht->size / 2 ) && !( ht->flags & HTF_DISABLE_REDUCE ) ) {
                 _HT_Reduce( ht );
             }
@@ -568,7 +565,7 @@ int HT_del( HTable ht, const void *key, size_t key_size )
     }
 
     __unlock( ht->lock );
-    return rc;
+    return ht->error;
 }
 
 /*

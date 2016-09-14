@@ -10,11 +10,6 @@
 extern "C" {
 #endif
 
-/*
-*  Created on: 11 авг. 2016 г.
-*      Author: Vsevolod Lutovinov <klopp@yandex.ru>
-*/
-
 #include "config.h"
 #include "_lock.h"
 #include <errno.h>
@@ -105,6 +100,9 @@ HTable HT_enable_reduce( HTable ht );
 HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data );
 HTItem HT_get( HTable ht, const void *key, size_t key_size );
 void *HT_val( HTable ht, const void *key, size_t key_size );
+/*
+ * Return ENOKEY or 0 (success):
+ */
 int HT_del( HTable ht, const void *key, size_t key_size );
 
 /*
