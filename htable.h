@@ -105,7 +105,7 @@ HTable HT_enable_reduce( HTable ht );
 HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data );
 HTItem HT_get( HTable ht, const void *key, size_t key_size );
 void *HT_val( HTable ht, const void *key, size_t key_size );
-int HT_delete( HTable ht, const void *key, size_t key_size );
+int HT_del( HTable ht, const void *key, size_t key_size );
 
 /*
  * C-strings keys handling:
@@ -114,7 +114,7 @@ int HT_delete( HTable ht, const void *key, size_t key_size );
  */
 HTItem HT_set_c( HTable ht, const char *key, void *data );
 HTItem HT_get_c( HTable ht, const char *key );
-int HT_delete_c( HTable ht, const char *key );
+int HT_del_c( HTable ht, const char *key );
 
 /*
  * HT_set_char( ht, 'c', data );
@@ -126,7 +126,7 @@ int HT_delete_c( HTable ht, const char *key );
     HTItem HT_set_##tag( HTable ht, type key, void *data ); \
     HTItem HT_get_##tag( HTable ht, type key); \
     void *HT_val_##tag( HTable ht, type key); \
-    int HT_delete_##tag( HTable ht, type key);
+    int HT_del_##tag( HTable ht, type key);
 
 HT_INTEGER_DECL( szt, size_t );
 HT_INTEGER_DECL( char, char );

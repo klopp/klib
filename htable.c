@@ -483,7 +483,7 @@ void *HT_val( HTable ht, const void *key, size_t key_size )
  * Delete hash table item. Return 1 (success) or 0 (not found). Set internal
  * error code.
  */
-int HT_delete( HTable ht, const void *key, size_t key_size )
+int HT_del( HTable ht, const void *key, size_t key_size )
 {
     unsigned int hash;
     HTItem cursor;
@@ -617,9 +617,9 @@ HTItem HT_get_c( HTable ht, const char *key )
     return HT_get( ht, key, strlen( key ) );
 }
 
-int HT_delete_c( HTable ht, const char *key )
+int HT_del_c( HTable ht, const char *key )
 {
-    return HT_delete( ht, key, strlen( key ) );
+    return HT_del( ht, key, strlen( key ) );
 }
 
 #define HT_INTEGER_IMPL(tag, type) \
@@ -633,7 +633,7 @@ int HT_delete_c( HTable ht, const char *key )
         return HT_val( ht, &key, sizeof(key) ); \
     } \
     int HT_delete_##tag( HTable ht, type key) { \
-        return HT_delete( ht, &key, sizeof(key) ); \
+        return HT_del( ht, &key, sizeof(key) ); \
     }
 
 HT_INTEGER_IMPL( szt, size_t );
