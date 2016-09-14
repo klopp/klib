@@ -33,8 +33,7 @@ typedef struct _HTItem {
 typedef enum {
     HF_HASH_JEN, HF_HASH_LY, HF_HASH_ROT13, HF_HASH_RS, HF_HASH_CRC16,
     HF_HASH_CRC32
-}
-HT_Hash_Functions;
+} HT_Hash_Functions;
 
 typedef unsigned int ( *HT_Hash_Function )( const void *data, size_t size );
 typedef void ( *HT_Destructor )( void *data );

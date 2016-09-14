@@ -246,8 +246,7 @@ void _HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
                     i++;
                     j--;
                 }
-            }
-            while( i <= j );
+            } while( i <= j );
 
             if( i < ppos ) {
                 if( i < ub ) {
@@ -267,10 +266,8 @@ void _HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
 
                 lb = i;
             }
-        }
-        while( lb < ub );
-    }
-    while( stackpos != 0 );
+        } while( lb < ub );
+    } while( stackpos != 0 );
 }
 
 HTItem *HT_ordered_items( HTable ht )
