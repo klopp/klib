@@ -519,6 +519,11 @@ int HT_delete( HTable ht, const void *key, size_t key_size )
             Free( cursor );
             ht->nitems--;
             ht->error = 0;
+
+            if( !ht->items ) {
+                ht->order = 0;
+            }
+
             rc++;
 
             if( ( ht->nitems < ht->size / 2 ) && !( ht->flags & HTF_DISABLE_REDUCE ) ) {
