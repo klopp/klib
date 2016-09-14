@@ -632,7 +632,7 @@ int HT_del_c( HTable ht, const char *key )
     void *HT_val_##tag( HTable ht, type key) {; \
         return HT_val( ht, &key, sizeof(key) ); \
     } \
-    int HT_delete_##tag( HTable ht, type key) { \
+    int HT_del_##tag( HTable ht, type key) { \
         return HT_del( ht, &key, sizeof(key) ); \
     }
 
