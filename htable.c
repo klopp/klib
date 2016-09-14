@@ -522,7 +522,6 @@ int HT_del( HTable ht, const void *key, size_t key_size )
     unsigned int hash;
     HTItem cursor;
     HTItem e;
-    int rc;
     size_t idx;
     __lock( ht->lock );
     e = NULL;
