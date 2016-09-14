@@ -8,6 +8,7 @@
 #include "hash.h"
 
 #define HT_HASH_MASK(ht)    (ht->size-1)
+#define QSORT_STACK_SIZE    512
 
 /*
  * Because crc16() return short:
@@ -241,8 +242,7 @@ void _HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
 {
     long i, j;
     long lb, ub;
-    // FIXME, magic number:
-    long lbstack[512], ubstack[512];
+    long lbstack[QSORT_STACK_SIZE], ubstack[QSORT_STACK_SIZE];
     long stackpos = 1;
     long ppos;
     HTItem pivot;
