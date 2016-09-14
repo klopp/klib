@@ -8,7 +8,7 @@
 #include "hash.h"
 
 #define HT_HASH_MASK(ht)    (ht->size-1)
-#define QSORT_STACK_SIZE    512
+#define QSORT_STACK_SIZE    128
 
 /*
  * Because crc16() return short:
