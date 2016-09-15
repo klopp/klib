@@ -53,7 +53,7 @@ HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
         i = 1;
 
         while( i < ht->size ) {
-            i = i * 2;
+            i *= 2;
         }
 
         ht->size = i;
@@ -192,59 +192,21 @@ HTItem *HT_items( HTable ht )
     return data.items;
 }
 
-static int _HTItem_order( const HTItem a, const HTItem b )
+static int _HTItem_compare_order( const HTItem a, const HTItem b )
 {
-    if( a->order > b->order ) {
-        return 1;
-    }
-
-    if( a->order < b->order ) {
-        return -1;
+    if( a->order != b->order ) {
+        return a->order > b->order ? 1 : -1;
     }
 
     return 0;
 }
 
-/*
-void _HT_QSort( HTItem *items, long b, long e, HT_Compare compare )
-{
-    long l = b, r = e;
-    HTItem piv = items[( l + r ) / 2];
-
-    while( l <= r ) {
-        while( compare( items[l], piv ) < 0 ) {
-            l++;
-        }
-
-        while( compare( items[r], piv ) > 0 ) {
-            r--;
-        }
-
-        if( l <= r ) {
-            HTItem temp = items[r];
-            items[r] = items[l];
-            items[l] = temp;
-            l++;
-            r--;
-        }
-    }
-
-    if( b < r ) {
-        _HT_QSort( items, b, r, compare );
-    }
-
-    if( e > l ) {
-        _HT_QSort( items, l, e, compare );
-    }
-}
-*/
 void _HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
 {
     long i, j;
     long lb, ub;
     long lbstack[QSORT_STACK_SIZE], ubstack[QSORT_STACK_SIZE];
-    long stackpos = 1;
-    long ppos;
+    size_t stackpos = 1, ppos;
     HTItem pivot;
     lbstack[1] = 0;
     ubstack[1] = nitems - 1;
@@ -306,7 +268,7 @@ void _HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
 
 HTItem *HT_ordered_items( HTable ht )
 {
-    return HT_sorted_items( ht, _HTItem_order );
+    return HT_sorted_items( ht, _HTItem_compare_order );
 }
 
 HTItem *HT_sort_items( HTItem *items, size_t nitems, HT_Compare compare )
