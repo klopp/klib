@@ -32,7 +32,7 @@ static struct {
 /*
  * Create hash table with given initial size. Return created table or NULL.
  */
-HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
+HTable ht_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
 {
     size_t i;
     HTable ht = Malloc( sizeof( struct _HTable ) );
@@ -91,7 +91,7 @@ HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
 /*
  * Internal, destroy item:
  */
-static void _HT_Destroy_Item( HTItem e, HTable ht )
+static void _HT_Destroy_Item( HTItem *e, HTable ht )
 {
     if( e->next ) {
         _HT_Destroy_Item( e->next, ht );
@@ -135,7 +135,7 @@ void HT_destroy( HTable ht )
     Free( ht );
 }
 
-static void _HT_ForEach( HTItem item, HT_Foreach foreach, void *data )
+static void _HT_ForEach( HTItem *item, HT_Foreach foreach, void *data )
 {
     if( item->next ) {
         _HT_ForEach( item->next, foreach, data );
@@ -161,16 +161,16 @@ void HT_foreach( HTable ht, HT_Foreach foreach, void *data )
     __unlock( ht->lock );
 }
 
-static void _HT_items( HTItem item, void *data )
+static void _HT_items( const HTItem *item, void *data )
 {
     struct {
-        HTItem *items;
+        HTItem const **items;
         size_t idx;
         size_t nitems;
     }*ptr = data;
 
     if( !ptr->items ) {
-        ptr->items = Malloc( sizeof( HTItem ) * ptr->nitems );
+        ptr->items = Malloc( sizeof( HTItem * ) * ptr->nitems );
     }
 
     if( ptr->items ) {
@@ -178,10 +178,10 @@ static void _HT_items( HTItem item, void *data )
     }
 }
 
-HTItem *HT_items( HTable ht )
+HTItem const **HT_items( HTable ht )
 {
     struct {
-        HTItem *items;
+        HTItem const **items;
         size_t idx;
         size_t nitems;
     } data = { NULL, 0, ht->nitems };
@@ -193,7 +193,7 @@ HTItem *HT_items( HTable ht )
     return data.items;
 }
 
-static int _HTItem_compare_order( const HTItem a, const HTItem b )
+static int _HTItem_compare_order( const HTItem *a, const HTItem *b )
 {
     if( a->order != b->order ) {
         return a->order > b->order ? 1 : -1;
@@ -202,10 +202,11 @@ static int _HTItem_compare_order( const HTItem a, const HTItem b )
     return 0;
 }
 
-static HTItem *_HT_ISort( HTItem *items, size_t nitems, HT_Compare compare )
+static HTItem  const **_HT_ISort( HTItem  const **items, size_t nitems,
+                                  HT_Compare compare )
 {
     size_t i, j;
-    HTItem tmp;
+    HTItem const *tmp;
 
     for( i = 1; i < nitems; i++ ) {
         tmp = items[i];
@@ -223,13 +224,14 @@ static HTItem *_HT_ISort( HTItem *items, size_t nitems, HT_Compare compare )
     return items;
 }
 
-static HTItem *_HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
+static HTItem  const **_HT_QSort( HTItem  const **items, size_t nitems,
+                                  HT_Compare compare )
 {
     long i, j;
     long lb, ub;
     long lbstack[QSORT_STACK_SIZE], ubstack[QSORT_STACK_SIZE];
     size_t stackpos = 1, ppos;
-    HTItem pivot;
+    HTItem const *pivot;
     lbstack[1] = 0;
     ubstack[1] = nitems - 1;
 
@@ -255,7 +257,7 @@ static HTItem *_HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
 
                 if( i <= j ) {
                     if( i != j ) {
-                        HTItem tmp = items[i];
+                        HTItem const *tmp = items[i];
                         items[i] = items[j];
                         items[j] = tmp;
                     }
@@ -289,20 +291,21 @@ static HTItem *_HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
     return items;
 }
 
-HTItem *HT_ordered_items( HTable ht )
+HTItem const **HT_ordered_items( HTable ht )
 {
     return HT_sorted_items( ht, _HTItem_compare_order );
 }
 
-HTItem *HT_sort_items( HTItem *items, size_t nitems, HT_Compare compare )
+HTItem  const **HT_sort_items( HTItem const **items, size_t nitems,
+                               HT_Compare compare )
 {
     return nitems > ISORT_LIMIT ? _HT_QSort( items, nitems,
             compare ) : _HT_ISort( items, nitems, compare );
 }
 
-HTItem *HT_sorted_items( HTable ht, HT_Compare compare )
+HTItem  const **HT_sorted_items( HTable ht, HT_Compare compare )
 {
-    HTItem *items = HT_items( ht );
+    HTItem const **items = HT_items( ht );
 
     if( items ) {
         ht->nitems > ISORT_LIMIT ? _HT_QSort( items, ht->nitems,
@@ -326,7 +329,7 @@ size_t HT_max_bucket( HTable ht )
     for( i = 0; i < ht->size; i++ ) {
         if( ht->items[i] && ht->items[i]->next ) {
             size_t bucket = 0;
-            HTItem e = ht->items[i];
+            HTItem *e = ht->items[i];
 
             while( e ) {
                 bucket++;
@@ -361,7 +364,7 @@ HTable HT_enable_expand( HTable ht )
     return ht;
 }
 
-HTable HT_enable_reduce( HTable ht )
+HTable ht_enable_reduce( HTable ht )
 {
     ht->flags &= ( ~HTF_DISABLE_REDUCE );
     return ht;
@@ -374,7 +377,7 @@ HTable HT_enable_reduce( HTable ht )
 int _HT_Reduce( HTable ht )
 {
     size_t newsize;
-    HTItem *items;
+    HTItem **items;
     size_t i;
 
     if( ht->size < HT_MIN_SIZE ) {
@@ -382,16 +385,16 @@ int _HT_Reduce( HTable ht )
     }
 
     newsize = ht->size / 2;
-    items = Calloc( newsize, sizeof( HTItem ) );
+    items = Calloc( newsize, sizeof( HTItem * ) );
 
     if( !items ) {
         return 0;
     }
 
-    memcpy( items, ht->items, newsize * sizeof( HTItem ) );
+    memcpy( items, ht->items, newsize * sizeof( HTItem * ) );
 
     for( i = newsize; i < ht->size; i++ ) {
-        HTItem cur;
+        HTItem *cur;
 
         if( !ht->items[i] ) {
             continue;
@@ -427,7 +430,7 @@ int _HT_Expand( HTable ht )
     size_t newmask;
     size_t mask;
     size_t i;
-    HTItem *items = Calloc( newsize, sizeof( HTItem ) );
+    HTItem **items = Calloc( newsize, sizeof( HTItem * ) );
 
     if( !items ) {
         return 0;
@@ -435,10 +438,10 @@ int _HT_Expand( HTable ht )
 
     mask = HT_HASH_MASK( ht );
     newmask = newsize - 1;
-    memcpy( items, ht->items, ht->size * sizeof( HTItem ) );
+    memcpy( items, ht->items, ht->size * sizeof( HTItem * ) );
 
     for( i = 0; i < ht->size; i++ ) {
-        HTItem cur = items[i], prev = NULL, temp;
+        HTItem *cur = items[i], *prev = NULL, *temp;
 
         while( cur ) {
             if( ( cur->hash & mask ) != ( cur->hash & newmask ) ) {
@@ -471,10 +474,10 @@ int _HT_Expand( HTable ht )
  * Get hash table item data. Return data found or NULL. Set internal
  * error code.
  */
-HTItem HT_get( HTable ht, const void *key, size_t key_size )
+HTItem const *HT_get( HTable ht, const void *key, size_t key_size )
 {
     unsigned int hash;
-    HTItem e;
+    HTItem *e;
     __lock( ht->lock );
     hash = ht->hf( key, key_size );
     e = ht->items[hash & HT_HASH_MASK( ht )];
@@ -493,9 +496,9 @@ HTItem HT_get( HTable ht, const void *key, size_t key_size )
     return e;
 }
 
-void *HT_val( HTable ht, const void *key, size_t key_size )
+void const *HT_val( HTable ht, const void *key, size_t key_size )
 {
-    HTItem item = HT_get( ht, key, key_size );
+    HTItem const *item = HT_get( ht, key, key_size );
     return item ? item->data : NULL;
 }
 
@@ -506,8 +509,8 @@ void *HT_val( HTable ht, const void *key, size_t key_size )
 int HT_del( HTable ht, const void *key, size_t key_size )
 {
     unsigned int hash;
-    HTItem cursor;
-    HTItem e;
+    HTItem *cursor;
+    HTItem *e;
     size_t idx;
     __lock( ht->lock );
     e = NULL;
@@ -557,11 +560,11 @@ int HT_del( HTable ht, const void *key, size_t key_size )
  * Insert hash table item. Return created item pointer (success) or NULL (failed).
  * Set internal error code.
  */
-HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data )
+HTItem const *HT_set( HTable ht, const void *key, size_t key_size, void *data )
 {
     unsigned int hash;
-    HTItem e;
-    HTItem item;
+    HTItem *e;
+    HTItem *item;
     size_t idx;
     __lock( ht->lock );
     hash = ht->hf( key, key_size );
@@ -622,12 +625,12 @@ HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data )
 /*
  * Various key types:
  */
-HTItem HT_set_c( HTable ht, const char *key, void *data )
+HTItem const *HT_set_c( HTable ht, const char *key, void *data )
 {
     return HT_set( ht, key, strlen( key ), data );
 }
 
-HTItem HT_get_c( HTable ht, const char *key )
+HTItem const *HT_get_c( HTable ht, const char *key )
 {
     return HT_get( ht, key, strlen( key ) );
 }
@@ -638,13 +641,13 @@ int HT_del_c( HTable ht, const char *key )
 }
 
 #define HT_INTEGER_IMPL(tag, type) \
-    HTItem HT_set_##tag( HTable ht, type key, void *data ) { \
+    HTItem const *HT_set_##tag( HTable ht, type key, void *data ) { \
         return HT_set( ht, &key, sizeof(key), data ); \
     } \
-    HTItem HT_get_##tag( HTable ht, type key) {; \
+    HTItem const *HT_get_##tag( HTable ht, type key) {; \
         return HT_get( ht, &key, sizeof(key) ); \
     } \
-    void *HT_val_##tag( HTable ht, type key) {; \
+    void const *HT_val_##tag( HTable ht, type key) {; \
         return HT_val( ht, &key, sizeof(key) ); \
     } \
     int HT_del_##tag( HTable ht, type key) { \

@@ -23,7 +23,7 @@ typedef struct _HTItem {
     void *data;
     unsigned int hash;
     struct _HTItem *next;
-} *HTItem;
+} HTItem;
 
 typedef enum {
     HF_HASH_JEN, HF_HASH_LY, HF_HASH_ROT13, HF_HASH_RS, HF_HASH_CRC16,
@@ -41,7 +41,7 @@ typedef enum _HT_Flags {
 typedef struct _HTable {
     size_t size;
     size_t nitems;
-    HTItem *items;
+    HTItem **items;
     HT_Destructor destructor;
     HT_Hash_Function hf;
     HT_Flags flags;
@@ -50,8 +50,8 @@ typedef struct _HTable {
     __lock_t( lock );
 } *HTable;
 
-typedef void ( *HT_Foreach )( HTItem item, void *data );
-typedef int ( *HT_Compare )( const HTItem a, const HTItem b );
+typedef void ( *HT_Foreach )( const HTItem const *item, void *data );
+typedef int ( *HT_Compare )( const HTItem *a, const HTItem *b );
 
 /*
  * 'size' will be rounded up to the next highest power of 2: 100 => 128, 1000 => 1024 etc.
@@ -70,19 +70,20 @@ void HT_foreach( HTable ht, HT_Foreach foreach, void *data );
 /*
  * Get hash table items:
  */
-HTItem *HT_items( HTable ht );
+HTItem const **HT_items( HTable ht );
 /*
  * Get items sorted by insertion order:
  */
-HTItem *HT_ordered_items( HTable ht );
+HTItem const **HT_ordered_items( HTable ht );
 /*
  * Get items with custom sorting:
  */
-HTItem *HT_sorted_items( HTable ht, HT_Compare compare );
+HTItem const **HT_sorted_items( HTable ht, HT_Compare compare );
 /*
  * Sort items array:
  */
-HTItem *HT_sort_items( HTItem *items, size_t nitems, HT_Compare compare );
+HTItem const **HT_sort_items( HTItem const **items, size_t nitems,
+                              HT_Compare compare );
 
 size_t HT_max_bucket( HTable ht );
 /*
@@ -97,9 +98,9 @@ HTable HT_enable_reduce( HTable ht );
 /*
  * Used error codes (HTable.error): 0 (no errors), ENOKEY, ENOMEM
  */
-HTItem HT_set( HTable ht, const void *key, size_t key_size, void *data );
-HTItem HT_get( HTable ht, const void *key, size_t key_size );
-void *HT_val( HTable ht, const void *key, size_t key_size );
+HTItem const *HT_set( HTable ht, const void *key, size_t key_size, void *data );
+HTItem const *HT_get( HTable ht, const void *key, size_t key_size );
+void const *HT_val( HTable ht, const void *key, size_t key_size );
 /*
  * Return ENOKEY or 0 (success):
  */
@@ -110,8 +111,8 @@ int HT_del( HTable ht, const void *key, size_t key_size );
  * HT_set_c( ht, "fookey", data );
  * ... etc
  */
-HTItem HT_set_c( HTable ht, const char *key, void *data );
-HTItem HT_get_c( HTable ht, const char *key );
+HTItem const *HT_set_c( HTable ht, const char *key, void *data );
+HTItem const *HT_get_c( HTable ht, const char *key );
 int HT_del_c( HTable ht, const char *key );
 
 /*
@@ -121,9 +122,9 @@ int HT_del_c( HTable ht, const char *key );
  * ... etc
  */
 #define HT_INTEGER_DECL(tag, type) \
-    HTItem HT_set_##tag( HTable ht, type key, void *data ); \
-    HTItem HT_get_##tag( HTable ht, type key); \
-    void *HT_val_##tag( HTable ht, type key); \
+    HTItem const *HT_set_##tag( HTable ht, type key, void *data ); \
+    HTItem const *HT_get_##tag( HTable ht, type key); \
+    void const *HT_val_##tag( HTable ht, type key); \
     int HT_del_##tag( HTable ht, type key);
 
 HT_INTEGER_DECL( szt, size_t );
