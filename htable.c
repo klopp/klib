@@ -201,7 +201,7 @@ static int _HTItem_compare_order( const HTItem a, const HTItem b )
     return 0;
 }
 
-void _HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
+static HTItem *_HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
 {
     long i, j;
     long lb, ub;
@@ -263,6 +263,8 @@ void _HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
             }
         } while( lb < ub );
     } while( stackpos != 0 );
+
+    return items;
 }
 
 
@@ -273,8 +275,7 @@ HTItem *HT_ordered_items( HTable ht )
 
 HTItem *HT_sort_items( HTItem *items, size_t nitems, HT_Compare compare )
 {
-    _HT_QSort( items, nitems, compare );
-    return items;
+    return _HT_QSort( items, nitems, compare );
 }
 
 HTItem *HT_sorted_items( HTable ht, HT_Compare compare )
