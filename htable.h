@@ -16,9 +16,15 @@ extern "C" {
 
 #define HT_MIN_SIZE     64
 
-typedef struct _HTItem {
+typedef struct _HTIKey {
     void *key;
-    size_t key_size;
+    size_t size;
+} *HTIKey;
+
+typedef struct _HTIKey const *HTIKeyConst;
+
+typedef struct _HTItem {
+    struct _HTIKey key;
     size_t order;
     void *data;
     unsigned int hash;
@@ -69,7 +75,44 @@ void HT_destroy( const HTable ht );
  * Foreach iterator:
  */
 void HT_foreach( const HTable ht, HT_Foreach foreach, void *data );
+/*
+ * Get max collision-bucket length:
+ * TODO remove?
+ */
+size_t HT_max_bucket( const HTable ht );
+/*
+ * Disable/enable expand and reduce internal data storage (enabled by default).
+ * Return HTable pointer from arguments.
+ */
+HTable HT_disable_expand( const HTable ht );
+HTable HT_disable_reduce( const HTable ht );
+HTable HT_enable_expand( const HTable ht );
+HTable HT_enable_reduce( const HTable ht );
 
+/*
+ * Get hash table keys:
+ */
+HTIKeyConst *HT_keys( const HTable ht );
+/*
+ * Get keys sorted by insertion order:
+ */
+HTIKeyConst *HT_ordered_keys( const HTable ht );
+/*
+ * Get keys with custom sorting:
+ */
+HTIKeyConst *HT_sorted_keys( const HTable ht, HT_Compare compare );
+/*
+ * Get hash table values:
+ */
+void const **HT_values( const HTable ht );
+/*
+ * Get values sorted by insertion order:
+ */
+void const **HT_ordered_values( const HTable ht );
+/*
+ * Get values with custom sorting:
+ */
+void const **HT_sorted_values( const HTable ht, HT_Compare compare );
 /*
  * Get hash table items:
  */
@@ -87,16 +130,6 @@ HTItemConst *HT_sorted_items( const HTable ht, HT_Compare compare );
  */
 HTItemConst *HT_sort_items( HTItemConst *items, size_t nitems,
                             HT_Compare compare );
-
-size_t HT_max_bucket( const HTable ht );
-/*
- * Disable/enable expand and reduce internal data storage (enabled by default).
- * Return HTable pointer from arguments.
- */
-HTable HT_disable_expand( const HTable ht );
-HTable HT_disable_reduce( const HTable ht );
-HTable HT_enable_expand( const HTable ht );
-HTable HT_enable_reduce( const HTable ht );
 
 /*
  * Used error codes (HTable.error): 0 (no errors), ENOKEY, ENOMEM

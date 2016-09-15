@@ -101,7 +101,7 @@ static void _HT_Destroy_Item( HTItem e, const HTable ht )
         ht->destructor( e->data );
     }
 
-    Free( e->key );
+    Free( e->key.key );
     Free( e );
 }
 
@@ -301,6 +301,120 @@ static HTItemConst *_HT_QSort( HTItemConst *items, size_t nitems,
     } while( stackpos != 0 );
 
     return items;
+}
+
+static HTIKeyConst *_HT_Items2Keys( HTItemConst *items, size_t max )
+{
+    HTIKeyConst *keys = Malloc( max * sizeof( HTIKeyConst ) + 1 );
+
+    if( keys ) {
+        size_t i;
+
+        for( i = 0; i < max; i++ ) {
+            keys[i] = &items[i]->key;
+        }
+
+        keys[i] = NULL;
+    }
+
+    Free( items );
+    return keys;
+}
+
+HTIKeyConst *HT_keys( const HTable ht )
+{
+    HTItemConst *items = HT_items( ht );
+
+    if( items ) {
+        return _HT_Items2Keys( items, ht->nitems );
+    }
+
+    return NULL;
+}
+
+/*
+ * Get keys sorted by insertion order:
+ */
+HTIKeyConst *HT_ordered_keys( const HTable ht )
+{
+    HTItemConst *items = HT_ordered_items( ht );
+
+    if( items ) {
+        return _HT_Items2Keys( items, ht->nitems );
+    }
+
+    return NULL;
+}
+
+/*
+ * Get keys sorted by user function:
+ */
+HTIKeyConst *HT_sorted_keys( const HTable ht, HT_Compare compare )
+{
+    HTItemConst *items = HT_sorted_items( ht, compare );
+
+    if( items ) {
+        return _HT_Items2Keys( items, ht->nitems );
+    }
+
+    return NULL;
+}
+
+static void const **_HT_Items2Values( HTItemConst *items, size_t max )
+{
+    void const **values = Malloc( max * sizeof( void const * ) + 1 );
+
+    if( values ) {
+        size_t i;
+
+        for( i = 0; i < max; i++ ) {
+            values[i] = items[i]->data;
+        }
+
+        values[i] = NULL;
+    }
+
+    Free( items );
+    return values;
+}
+
+void const **HT_values( const HTable ht )
+{
+    HTItemConst *items = HT_items( ht );
+
+    if( items ) {
+        return _HT_Items2Values( items, ht->nitems );
+    }
+
+    return NULL;
+}
+
+/*
+ * Get values sorted by insertion order:
+ */
+void const **HT_ordered_values( const HTable ht )
+{
+    HTItemConst *items = HT_ordered_items( ht );
+
+    if( items ) {
+        return _HT_Items2Values( items, ht->nitems );
+    }
+
+    return NULL;
+}
+
+/*
+ * Get values sorted by user function:
+ */
+void const **HT_sorted_values( const HTable ht, HT_Compare compare )
+{
+    HTItemConst *items = HT_sorted_items( ht, compare );
+
+    if( items ) {
+        return _HT_Items2Values( items, ht->nitems );
+    }
+
+    return NULL;
 }
 
 /*
@@ -505,7 +619,7 @@ HTItemConst HT_get( const HTable ht, const void *key, size_t key_size )
     ht->error = ENOKEY;
 
     while( e ) {
-        if( e->key_size == key_size && !memcmp( e->key, key, key_size ) ) {
+        if( e->key.size == key_size && !memcmp( e->key.key, key, key_size ) ) {
             ht->error = 0;
             break;
         }
@@ -541,7 +655,8 @@ int HT_del( const HTable ht, const void *key, size_t key_size )
     ht->error = ENOKEY;
 
     while( cursor ) {
-        if( cursor->key_size == key_size && !memcmp( cursor->key, key, key_size ) ) {
+        if( cursor->key.size == key_size &&
+                !memcmp( cursor->key.key, key, key_size ) ) {
             if( !e ) {
                 ht->items[idx] = cursor->next;
             }
@@ -553,7 +668,7 @@ int HT_del( const HTable ht, const void *key, size_t key_size )
                 ht->destructor( cursor->data );
             }
 
-            Free( cursor->key );
+            Free( cursor->key.key );
             Free( cursor );
             ht->nitems--;
             ht->error = 0;
@@ -594,7 +709,7 @@ HTItemConst HT_set( const HTable ht, const void *key, size_t key_size,
     e = ht->items[idx];
 
     while( e ) {
-        if( e->key_size == key_size && !memcmp( e->key, key, key_size ) ) {
+        if( e->key.size == key_size && !memcmp( e->key.key, key, key_size ) ) {
             if( ht->destructor ) {
                 ht->destructor( e->data );
             }
@@ -616,17 +731,17 @@ HTItemConst HT_set( const HTable ht, const void *key, size_t key_size,
         return NULL;
     }
 
-    item->key = Malloc( key_size );
+    item->key.key = Malloc( key_size );
 
-    if( !item->key ) {
+    if( !item->key.key ) {
         ht->error = ENOMEM;
         Free( item );
         __unlock( ht->lock );
         return NULL;
     }
 
-    memcpy( item->key, key, key_size );
-    item->key_size = key_size;
+    memcpy( item->key.key, key, key_size );
+    item->key.size = key_size;
     item->order = ht->order++;
     item->data = data;
     item->next = NULL;
