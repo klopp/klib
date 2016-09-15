@@ -23,7 +23,9 @@ typedef struct _HTItem {
     void *data;
     unsigned int hash;
     struct _HTItem *next;
-} HTItem;
+} *HTItem;
+
+typedef struct _HTItem const *HTItemConst;
 
 typedef enum {
     HF_HASH_JEN, HF_HASH_LY, HF_HASH_ROT13, HF_HASH_RS, HF_HASH_CRC16,
@@ -41,7 +43,7 @@ typedef enum _HT_Flags {
 typedef struct _HTable {
     size_t size;
     size_t nitems;
-    HTItem **items;
+    HTItem *items;
     HT_Destructor destructor;
     HT_Hash_Function hf;
     HT_Flags flags;
@@ -50,12 +52,13 @@ typedef struct _HTable {
     __lock_t( lock );
 } *HTable;
 
-typedef void ( *HT_Foreach )( const HTItem const *item, void *data );
-typedef int ( *HT_Compare )( const HTItem const *a, const HTItem const *b );
+typedef void ( *HT_Foreach )( const HTItemConst item, void *data );
+typedef int ( *HT_Compare )( const HTItemConst a, const HTItemConst b );
 
 /*
- * 'size' will be rounded up to the next highest power of 2: 100 => 128, 1000 => 1024 etc.
- * Can be 0 or < HT_SIZE_MIN, HT_SIZE_MIN will be used.
+ * 'hf' can be 0 (recomended), Jenkins hash functions will be used
+ * 'size' will be rounded up to the next highest power of 2: 100 => 128,
+ * 1000 => 1024 etc. Can be 0 or < HT_SIZE_MIN, HT_SIZE_MIN will be used.
  * 'destructor' is a function to delete elements data. Can be NULL.
  */
 HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor );
@@ -70,20 +73,20 @@ void HT_foreach( const HTable ht, HT_Foreach foreach, void *data );
 /*
  * Get hash table items:
  */
-HTItem const **HT_items( const HTable ht );
+HTItemConst *HT_items( const HTable ht );
 /*
  * Get items sorted by insertion order:
  */
-HTItem const **HT_ordered_items( const HTable ht );
+HTItemConst *HT_ordered_items( const HTable ht );
 /*
  * Get items with custom sorting:
  */
-HTItem const **HT_sorted_items( const HTable ht, HT_Compare compare );
+HTItemConst *HT_sorted_items( const HTable ht, HT_Compare compare );
 /*
  * Sort items array:
  */
-HTItem const **HT_sort_items( HTItem const **items, size_t nitems,
-                              HT_Compare compare );
+HTItemConst *HT_sort_items( HTItemConst *items, size_t nitems,
+                            HT_Compare compare );
 
 size_t HT_max_bucket( const HTable ht );
 /*
@@ -98,9 +101,9 @@ HTable HT_enable_reduce( const HTable ht );
 /*
  * Used error codes (HTable.error): 0 (no errors), ENOKEY, ENOMEM
  */
-HTItem const *HT_set( const HTable ht, const void *key, size_t key_size,
-                      void *data );
-HTItem const *HT_get( const HTable ht, const void *key, size_t key_size );
+HTItemConst HT_set( const HTable ht, const void *key, size_t key_size,
+                    void *data );
+HTItemConst HT_get( const HTable ht, const void *key, size_t key_size );
 void const *HT_val( const HTable ht, const void *key, size_t key_size );
 /*
  * Return ENOKEY or 0 (success):
@@ -112,8 +115,8 @@ int HT_del( const HTable ht, const void *key, size_t key_size );
  * HT_set_c( ht, "fookey", data );
  * ... etc
  */
-HTItem const *HT_set_c( const HTable ht, const char *key, void *data );
-HTItem const *HT_get_c( const HTable ht, const char *key );
+HTItemConst HT_set_c( const HTable ht, const char *key, void *data );
+HTItemConst HT_get_c( const HTable ht, const char *key );
 int HT_del_c( const HTable ht, const char *key );
 
 /*
@@ -123,8 +126,8 @@ int HT_del_c( const HTable ht, const char *key );
  * ... etc
  */
 #define HT_INTEGER_DECL(tag, type) \
-    HTItem const *HT_set_##tag(const HTable ht, type key, void *data ); \
-    HTItem const *HT_get_##tag(const HTable ht, type key); \
+    HTItemConst HT_set_##tag(const HTable ht, type key, void *data ); \
+    HTItemConst HT_get_##tag(const HTable ht, type key); \
     void const *HT_val_##tag(const HTable ht, type key); \
     int HT_del_##tag(const HTable ht, type key);
 
