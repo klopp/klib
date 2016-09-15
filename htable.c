@@ -32,7 +32,7 @@ static struct {
 /*
  * Create hash table with given initial size. Return created table or NULL.
  */
-HTable ht_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
+HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor )
 {
     size_t i;
     const  HTable ht = Malloc( sizeof( struct _HTable ) );
