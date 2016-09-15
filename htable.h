@@ -51,7 +51,7 @@ typedef struct _HTable {
 } *HTable;
 
 typedef void ( *HT_Foreach )( const HTItem const *item, void *data );
-typedef int ( *HT_Compare )( const HTItem *a, const HTItem *b );
+typedef int ( *HT_Compare )( const HTItem const *a, const HTItem const *b );
 
 /*
  * 'size' will be rounded up to the next highest power of 2: 100 => 128, 1000 => 1024 etc.
@@ -59,61 +59,62 @@ typedef int ( *HT_Compare )( const HTItem *a, const HTItem *b );
  * 'destructor' is a function to delete elements data. Can be NULL.
  */
 HTable HT_create( HT_Hash_Functions hf, size_t size, HT_Destructor destructor );
-void HT_clear( HTable ht );
-void HT_destroy( HTable ht );
+void HT_clear( const HTable ht );
+void HT_destroy( const HTable ht );
 
 /*
  * Foreach iterator:
  */
-void HT_foreach( HTable ht, HT_Foreach foreach, void *data );
+void HT_foreach( const HTable ht, HT_Foreach foreach, void *data );
 
 /*
  * Get hash table items:
  */
-HTItem const **HT_items( HTable ht );
+HTItem const **HT_items( const HTable ht );
 /*
  * Get items sorted by insertion order:
  */
-HTItem const **HT_ordered_items( HTable ht );
+HTItem const **HT_ordered_items( const HTable ht );
 /*
  * Get items with custom sorting:
  */
-HTItem const **HT_sorted_items( HTable ht, HT_Compare compare );
+HTItem const **HT_sorted_items( const HTable ht, HT_Compare compare );
 /*
  * Sort items array:
  */
 HTItem const **HT_sort_items( HTItem const **items, size_t nitems,
                               HT_Compare compare );
 
-size_t HT_max_bucket( HTable ht );
+size_t HT_max_bucket( const HTable ht );
 /*
  * Disable/enable expand and reduce internal data storage (enabled by default).
  * Return HTable pointer from arguments.
  */
-HTable HT_disable_expand( HTable ht );
-HTable HT_disable_reduce( HTable ht );
-HTable HT_enable_expand( HTable ht );
-HTable HT_enable_reduce( HTable ht );
+HTable HT_disable_expand( const HTable ht );
+HTable HT_disable_reduce( const HTable ht );
+HTable HT_enable_expand( const HTable ht );
+HTable HT_enable_reduce( const HTable ht );
 
 /*
  * Used error codes (HTable.error): 0 (no errors), ENOKEY, ENOMEM
  */
-HTItem const *HT_set( HTable ht, const void *key, size_t key_size, void *data );
-HTItem const *HT_get( HTable ht, const void *key, size_t key_size );
-void const *HT_val( HTable ht, const void *key, size_t key_size );
+HTItem const *HT_set( const HTable ht, const void *key, size_t key_size,
+                      void *data );
+HTItem const *HT_get( const HTable ht, const void *key, size_t key_size );
+void const *HT_val( const HTable ht, const void *key, size_t key_size );
 /*
  * Return ENOKEY or 0 (success):
  */
-int HT_del( HTable ht, const void *key, size_t key_size );
+int HT_del( const HTable ht, const void *key, size_t key_size );
 
 /*
  * C-strings keys handling:
  * HT_set_c( ht, "fookey", data );
  * ... etc
  */
-HTItem const *HT_set_c( HTable ht, const char *key, void *data );
-HTItem const *HT_get_c( HTable ht, const char *key );
-int HT_del_c( HTable ht, const char *key );
+HTItem const *HT_set_c( const HTable ht, const char *key, void *data );
+HTItem const *HT_get_c( const HTable ht, const char *key );
+int HT_del_c( const HTable ht, const char *key );
 
 /*
  * HT_set_char( ht, 'c', data );
@@ -122,10 +123,10 @@ int HT_del_c( HTable ht, const char *key );
  * ... etc
  */
 #define HT_INTEGER_DECL(tag, type) \
-    HTItem const *HT_set_##tag( HTable ht, type key, void *data ); \
-    HTItem const *HT_get_##tag( HTable ht, type key); \
-    void const *HT_val_##tag( HTable ht, type key); \
-    int HT_del_##tag( HTable ht, type key);
+    HTItem const *HT_set_##tag(const HTable ht, type key, void *data ); \
+    HTItem const *HT_get_##tag(const HTable ht, type key); \
+    void const *HT_val_##tag(const HTable ht, type key); \
+    int HT_del_##tag(const HTable ht, type key);
 
 HT_INTEGER_DECL( szt, size_t );
 HT_INTEGER_DECL( char, char );
