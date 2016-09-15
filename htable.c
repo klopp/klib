@@ -9,6 +9,7 @@
 
 #define HT_HASH_MASK(ht)    (ht->size-1)
 #define QSORT_STACK_SIZE    128
+#define ISORT_LIMIT         128
 
 /*
  * Because crc16() return short:
@@ -201,6 +202,27 @@ static int _HTItem_compare_order( const HTItem a, const HTItem b )
     return 0;
 }
 
+static HTItem *_HT_ISort( HTItem *items, size_t nitems, HT_Compare compare )
+{
+    size_t i, j;
+    HTItem tmp;
+
+    for( i = 1; i < nitems; i++ ) {
+        tmp = items[i];
+
+        for( j = i - 1; j >= 0; j-- ) {
+            if( compare( items[j], tmp ) < 0 ) {
+                break;
+            }
+
+            items[j + 1] = items[j];
+            items[j] = tmp;
+        }
+    }
+
+    return items;
+}
+
 static HTItem *_HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
 {
     long i, j;
@@ -217,7 +239,7 @@ static HTItem *_HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
         stackpos--;
 
         do {
-            ppos = ( lb + ub ) >> 1;
+            ppos = ( lb + ub ) / 2;
             i = lb;
             j = ub;
             pivot = items[ppos];
@@ -233,9 +255,9 @@ static HTItem *_HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
 
                 if( i <= j ) {
                     if( i != j ) {
-                        HTItem temp = items[i];
+                        HTItem tmp = items[i];
                         items[i] = items[j];
-                        items[j] = temp;
+                        items[j] = tmp;
                     }
 
                     i++;
@@ -267,7 +289,6 @@ static HTItem *_HT_QSort( HTItem *items, size_t nitems, HT_Compare compare )
     return items;
 }
 
-
 HTItem *HT_ordered_items( HTable ht )
 {
     return HT_sorted_items( ht, _HTItem_compare_order );
@@ -275,7 +296,8 @@ HTItem *HT_ordered_items( HTable ht )
 
 HTItem *HT_sort_items( HTItem *items, size_t nitems, HT_Compare compare )
 {
-    return _HT_QSort( items, nitems, compare );
+    return nitems > ISORT_LIMIT ? _HT_QSort( items, nitems,
+            compare ) : _HT_ISort( items, nitems, compare );
 }
 
 HTItem *HT_sorted_items( HTable ht, HT_Compare compare )
@@ -283,7 +305,8 @@ HTItem *HT_sorted_items( HTable ht, HT_Compare compare )
     HTItem *items = HT_items( ht );
 
     if( items ) {
-        _HT_QSort( items, ht->nitems, compare );
+        ht->nitems > ISORT_LIMIT ? _HT_QSort( items, ht->nitems,
+                                              compare ) : _HT_ISort( items, ht->nitems, compare );
     }
 
     return items;
