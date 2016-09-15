@@ -303,6 +303,9 @@ static HTItemConst *_HT_QSort( HTItemConst *items, size_t nitems,
     return items;
 }
 
+/*
+ * Internal, convert items array to keys array:
+ */
 static HTIKeyConst *_HT_Items2Keys( HTItemConst *items, size_t max )
 {
     HTIKeyConst *keys = Malloc( max * sizeof( HTIKeyConst ) + 1 );
@@ -360,6 +363,9 @@ HTIKeyConst *HT_sorted_keys( const HTable ht, HT_Compare compare )
     return NULL;
 }
 
+/*
+ * Internal, convert items array to values array:
+ */
 static void const **_HT_Items2Values( HTItemConst *items, size_t max )
 {
     void const **values = Malloc( max * sizeof( void const * ) + 1 );
