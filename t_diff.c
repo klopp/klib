@@ -6,6 +6,20 @@
 #include "t_diff.h"
 
 /* ---------------------------------------------------------------------------*/
+struct timeval *t_diff_start( struct timeval *start )
+{
+    if( !start ) {
+        start = Malloc( sizeof( struct timeval ) );
+    }
+
+    if( start ) {
+        gettimeofday( start, NULL );
+    }
+
+    return start;
+}
+
+/* ---------------------------------------------------------------------------*/
 unsigned long t_diff( struct timeval *start, struct timeval *end )
 {
     struct timeval lend;
