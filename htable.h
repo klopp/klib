@@ -34,7 +34,7 @@ typedef struct _HTItem {
 typedef struct _HTItem const *HTItemConst;
 
 typedef enum {
-    HF_HASH_JEN, HF_HASH_LY, HF_HASH_ROT13, HF_HASH_RS, HF_HASH_CRC16,
+    HF_HASH_JEN, HF_HASH_LY, HF_HASH_ROT13, HF_HASH_RS,
     HF_HASH_CRC32
 } HT_Hash_Functions;
 
@@ -77,7 +77,7 @@ void HT_destroy( const HTable ht );
 void HT_foreach( const HTable ht, HT_Foreach foreach, void *data );
 /*
  * Get max collision-bucket length:
- * TODO remove?
+ * TODO remove this?
  */
 size_t HT_max_bucket( const HTable ht );
 /*

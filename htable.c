@@ -11,14 +11,6 @@
 #define QSORT_STACK_SIZE    128
 #define ISORT_LIMIT         128
 
-/*
- * Because crc16() return short:
- */
-static inline unsigned int _crc16( const void *buf, size_t size )
-{
-    return crc16( buf, size );
-}
-
 static struct {
     HT_Hash_Functions idx;
     HT_Hash_Function hf;
@@ -26,7 +18,7 @@ static struct {
 } _hf[] = { { HF_HASH_JEN, hash_jen }, { HF_HASH_LY, hash_ly }, { HF_HASH_ROT13, hash_rot13 }, {
         HF_HASH_RS,
         hash_rs
-    }, { HF_HASH_CRC16, _crc16 }, { HF_HASH_CRC32, crc32 }
+    }, { HF_HASH_CRC32, crc32 }
 };
 
 /*
